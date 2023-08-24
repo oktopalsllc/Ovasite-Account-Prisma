@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import connectDB from "./config/connectDB.js";
+import { connectDB, authRouter, userRouter } from "./localImport.js";
 dotenv.config();
 
 const app = express();
@@ -16,6 +16,10 @@ app.use(cookieParser());
 app.get("/", (req, res) => {
   res.send("<h1>Welcome</h1>");
 });
+
+const basePath = "/api/v1";
+app.use(`${basePath}/auth`, authRouter);
+app.use(`${basePath}/users`, userRouter);
 
 //Connect to the database before listening
 const PORT = process.env.PORT || process.env.API_PORT;
