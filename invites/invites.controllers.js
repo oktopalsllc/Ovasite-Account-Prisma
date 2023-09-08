@@ -1,22 +1,19 @@
 import asyncHandler from "express-async-handler";
 import { v4 as uuidv4 } from "uuid";
 import Invite from "./invites.models.js";
-import Member from "../members/members.models.js";
+import Employee from "../employees/employees.models.js";
+import User from "../users/users.models.js";
 import Organization from "../organizations/organizations.models.js";
 import bcrypt from "bcrypt";
 import sendMail from "../services/sendMail.js";
 
-import dotenv from "dotenv";
-dotenv.config();
-import { Resend } from "resend";
-
-console.log("process.env.RESEND", process.env.RESEND);
-const resend = new Resend(process.env.RESEND);
+// TODO: send invite link with the role you want to give to the user
 
 const url = "http://localhost/api/v1";
 
 const generateInviteLink = asyncHandler(async (req, res) => {
-  const { organizationId, email } = req.body;
+  const { email, organizationId } = req.body;
+  // const { organizationId } = req.params;
 
   try {
     // Check if the organization exists
@@ -27,12 +24,12 @@ const generateInviteLink = asyncHandler(async (req, res) => {
     }
 
     // Check if the email already exists in the organization
-    const existingMember = await Member.findOne({
+    const existingEmployee = await Employee.findOne({
       email,
       organization: organizationId,
     });
 
-    if (existingMember) {
+    if (existingEmployee) {
       return res
         .status(400)
         .json({ error: "Email already exists in the organization" });
@@ -56,7 +53,7 @@ const generateInviteLink = asyncHandler(async (req, res) => {
 
     // Send an email with the invite link
     const mailOptions = {
-      from: "OvaSite <onboarding@resend.dev>",
+      from: "Ovasite <onboarding@resend.dev>",
       to: email,
       subject: "Invitation to Join Organization",
       html: `
@@ -95,52 +92,59 @@ const joinOrganization = asyncHandler(async (req, res) => {
       return res.status(400).json({ error: "Invalid email address" });
     }
 
-    // check if the organization exists
+    // Check if the user already exists with this email
+    let user = await User.findOne({ email });
+
+    // Check if the organization exists
     const organization = await Organization.findById(invite.organization);
 
     if (!organization) {
       return res.status(404).json({ error: "Organization not found" });
     }
 
-    // hash the users password
+    // Hash the user's password
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Create a new member record
-    const newMember = new Member({
+
+    // If the user doesn't exist, create a new user
+    if (!user) {
+      user = new User({
+        email,
+        password: hashedPassword,
+        organizations: [invite.organization],
+      });
+
+      // Save the new user record to the database
+      await user.save();
+    } else {
+      // If the user already exists, add the organization to their organizations array
+      user.organizations.push(invite.organization);
+      await user.save();
+    }
+
+    // Create a new employee record
+    const newEmployee = new Employee({
       fullName,
       email,
-      password: hashedPassword,
       organization: organization._id,
       role: "Member",
     });
 
-    // Save the new member record to the database
-    await newMember.save();
+    // Save the new employee record to the database
+    await newEmployee.save();
 
-    // Add the new member to the organization's member array
-    organization.members.push(newMember._id);
+    // Add the new employee to the organization's employee array
+    organization.employees.push(newEmployee._id);
     await organization.save();
 
     // Delete the invite link as it has been used
     await invite.deleteOne();
 
-    // Send a confirmation email to the member
-    const mailOptions = {
-      from: "OvaSite <onboarding@resend.dev>",
-      to: email,
-      subject: `Welcome to ${organization.name}!`,
-      html: `
-              <div class="container" style="max-width: 90%; margin: auto; padding-top: 20px">
-            <h2> Welcome ${newMember.fullName} </h2>
-            <p>We are glad to have you join our organization</p>
-              </div>
-            `,
-    };
-
-    const data = await sendMail(mailOptions);
-    res.status(200).json({ user: newMember, data: data });
+    res.status(200).json({ user: newEmployee, data: data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+// TODO: run a cronjob that will clean out the invitation database every week
 
 export { generateInviteLink, joinOrganization };
