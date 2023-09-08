@@ -3,24 +3,22 @@ import bcrypt from "bcrypt";
 
 const UserSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-    },
     email: {
       type: String,
       required: true,
       unique: true,
-    },
-
-    phone: {
-      type: String,
-      unique: true,
+      lowercase: true,
     },
     password: {
       type: String,
       required: true,
     },
+    organizations: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Organization" },
+    ],
   },
+
+  { versionKey: false },
   { timestamps: true }
 );
 
