@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { v4 as uuidv4 } from "uuid";
 import Invite from "./invites.models.js";
-import Employee from "../employees/employees.models.js";
+import Member from "../members/members.models.js";
 import User from "../users/users.models.js";
 import Organization from "../organizations/organizations.models.js";
 import bcrypt from "bcrypt";
@@ -24,12 +24,12 @@ const generateInviteLink = asyncHandler(async (req, res) => {
     }
 
     // Check if the email already exists in the organization
-    const existingEmployee = await Employee.findOne({
+    const existingMember = await Member.findOne({
       email,
       organization: organizationId,
     });
 
-    if (existingEmployee) {
+    if (existingMember) {
       return res
         .status(400)
         .json({ error: "Email already exists in the organization" });
@@ -121,25 +121,25 @@ const joinOrganization = asyncHandler(async (req, res) => {
       await user.save();
     }
 
-    // Create a new employee record
-    const newEmployee = new Employee({
+    // Create a new member record
+    const newMember = new Member({
       fullName,
       email,
       organization: organization._id,
       role: "Member",
     });
 
-    // Save the new employee record to the database
-    await newEmployee.save();
+    // Save the new member record to the database
+    await newMember.save();
 
-    // Add the new employee to the organization's employee array
-    organization.employees.push(newEmployee._id);
+    // Add the new member to the organization's member array
+    organization.members.push(newMember._id);
     await organization.save();
 
     // Delete the invite link as it has been used
     await invite.deleteOne();
 
-    res.status(200).json({ user: newEmployee, data: data });
+    res.status(200).json({ user: newMember, data: data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
