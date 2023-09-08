@@ -8,7 +8,9 @@ import {
   authRouter,
   userRouter,
   organizationRouter,
-} from "./localImport.js";s
+  memberRouter,
+} from "./localImport.js";
+s;
 dotenv.config();
 
 const app = express();
@@ -29,7 +31,11 @@ app.get("/", (req, res) => {
 const basePath = "/api/v1";
 app.use(`${basePath}/auth`, authRouter);
 app.use(`${basePath}/users`, userRouter);
-app.use(`${basePath}/organization`, organizationRouter);
+
+// Administration (Organization)
+app.use(`${basePath}/organizations`, organizationRouter);
+app.use(`${basePath}/invites`, inviteRouter);
+app.use(`${basePath}/organizations`, memberRouter);
 
 //Connect to the database before listening
 const PORT = process.env.PORT || process.env.API_PORT;
