@@ -3,5 +3,14 @@ import connectDB from "./config/connectDB.js";
 import authRouter from "./auth/auth.routes.js";
 import userRouter from "./users/users.routes.js";
 import organizationRouter from "./organization/organization.routes.js";
+import inviteRouter from "./invites/invites.routes.js";
+import memberRouter from "./members/members.routes.js";
 
-export { connectDB, authRouter, userRouter, organizationRouter };
+export {
+  connectDB,
+  authRouter,
+  userRouter,
+  organizationRouter,
+  inviteRouter,
+  memberRouter,
+};

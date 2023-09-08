@@ -2,13 +2,15 @@ import mongoose from "mongoose";
 
 const memberSchema = new mongoose.Schema(
   {
-    fullName: { type: String, required: true },
+    fullName: { type: String },
+    displayName: { type: String },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    birthDate: { type: Date },
     gender: { type: String, enum: ["Male", "Female", "Others"], index: true },
-    phone: { type: String },
+    contactNumber: { type: String },
     address: { type: String },
     image: { type: String },
+    salary: { type: Number },
     organization: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",
