@@ -18,8 +18,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(cors());
-app.use(csurf({ cookie: true }));
-app.use(helmet());
+// app.use(csurf({ cookie: true }));
+// app.use(helmet());
 
 //Routes go here
 app.get("/", (req, res) => {
