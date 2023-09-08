@@ -1,16 +1,47 @@
+import Member from "../members/members.models.js";
 import Organization from "./organization.models.js";
 import asyncHandler from "express-async-handler";
 
-// Create a new organization
+// Create a new organizations
 const createOrganization = asyncHandler(async (req, res) => {
+  const { createdBy } = req.user.id;
+  const { name } = req.body;
   try {
-    const newOrganization = await Organization.create(req.body);
+
+      // Check if an organization with the same name already exists
+  const existingOrganization = await Organization.findOne({ name });
+
+  if (existingOrganization) {
+    return res
+      .status(400)
+      .json({ error: `Organization name ${name} already exists.` });
+  }
+  
+    // Create a new organization with the provided data
+    const newOrganization = await Organization.create({
+      ...req.body,
+      createdBy: createdBy,
+    });
+
+    // Create a new member associated with the user who created the organization
+    const newMember = await Member.create({
+      organization: newOrganization._id,
+      fullName: req.user.fullName,
+      email: req.user.email,
+      password: req.user.password,
+      role: "Owner",
+    });
+
+    // add the newly created member to the the organization's member array
+    newOrganization.members.push(newMember);
+    await newOrganization.save();
 
     res.status(201).json(newOrganization);
   } catch (error) {
-    throw new Error(error);
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 // Get all organizations
 const getAllOrganizations = asyncHandler(async (req, res) => {
