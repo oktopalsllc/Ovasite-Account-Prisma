@@ -1,34 +1,45 @@
-import User from "../users/users.models.js";
 import asyncHandler from "express-async-handler";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 const registerUser = asyncHandler(async (req, res) => {
-  const email = req.body.email.toLowerCase();
-  const findUser = await User.findOne({ email });
+  try {
+    const { email, password } = req.body;
 
-  if (!findUser) {
-    const newUser = await User.create({
-      ...req.body,
-      email: email,
+    const lowercaseEmail = email.toLowerCase();
+
+    // check if the user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: lowercaseEmail },
     });
 
-    try {
-      return res.status(201).json(newUser);
-    } catch (error) {
-      return res
-        .status(500)
-        .json({ error: "Unable to sign up, please try again" });
+    if (!existingUser) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await prisma.user.create({
+        data: { email: lowercaseEmail, password: hashedPassword },
+      });
+
+      return res.status(201).json({ message: "User registered successfully" });
+    } else {
+      res.status(400).json({ error: "User already exists" });
     }
-  } else {
-    res.status(400).json({ error: "User already exists" });
+  } catch (error) {
+    console.error(error);
+    // res.status(500).json({ message: "Registration failed" });
   }
 });
 
 const loginUser = asyncHandler(async (req, res) => {
   try {
     const email = req.body.email.toLowerCase();
-    const user = await User.findOne({ email });
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
     if (!user) {
       return res.status(404).json({ error: "Incorrect email or password!" });
     }
@@ -42,24 +53,21 @@ const loginUser = asyncHandler(async (req, res) => {
 
     // include user information
     const tokenPayload = {
-      id: user._id,
-      fullName: user.fullName,
+      id: user.id,
       email: user.email,
-      password: user.password,
     };
 
-    console.log(tokenPayload);
-
-    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET);
-    const { password, ...otherDetails } = user._doc;
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
+      expiresIn: "10h",
+    });
     res
       .cookie("access_token", token, {
         httpOnly: true,
       })
       .status(200)
-      .json({ message: `${email} logged in successful` });
+      .json({ message: `${email} logged in successfully` });
   } catch (error) {
-    console.error(error);
+    console.error({ error: "An error occurred while logging in" });
   }
 });
 

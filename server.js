@@ -2,15 +2,16 @@ import express from "express";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import csurf from "csurf";
+import cors from "cors";
+
 import {
-  connectDB,
   authRouter,
   userRouter,
-  organizationRouter,
-  memberRouter,
+  organizationsRouter,
+  employeeRouter,
+  teamsRouter,
+  inviteRouter,
 } from "./localImport.js";
-s;
 dotenv.config();
 
 const app = express();
@@ -29,19 +30,20 @@ app.get("/", (req, res) => {
 });
 
 const basePath = "/api/v1";
+// Authentication
 app.use(`${basePath}/auth`, authRouter);
 app.use(`${basePath}/users`, userRouter);
 
 // Administration (Organization)
-app.use(`${basePath}/organizations`, organizationRouter);
+app.use(`${basePath}/organizations`, organizationsRouter);
+app.use(`${basePath}/organizations`, employeeRouter);
 app.use(`${basePath}/invites`, inviteRouter);
-app.use(`${basePath}/organizations`, memberRouter);
+app.use(`${basePath}/organizations`, teamsRouter);
 
 //Connect to the database before listening
 const PORT = process.env.PORT || process.env.API_PORT;
 console.log("Port: " + PORT);
 
 app.listen(PORT, () => {
-  connectDB();
   console.log(`Server is running on PORT ${PORT}`);
 });

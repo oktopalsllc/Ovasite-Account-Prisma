@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  password      String
+  organizations Organization[]
+  employees     Employee[]
+  teams         Team[]
+  invite        Invite[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Organization {
+  id         String  @id @default(cuid())
+  name       String  @unique
+  imageUrl   String?
+  address    String?
+  inviteCode String  @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  employees Employee[]
+  teams     Team[]
+  invite    Invite[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, name])
+}
+
+enum EmployeeRole {
+  OWNER
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+model Employee {
+  id            String    @id @default(cuid())
+  fullName      String?
+  email         String?
+  contactNumber String?
+  address       String?
+  image         String?
+
+  role   EmployeeRole @default(MEMBER)
+  userId String
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, organizationId])
+}
+
+enum TeamType {
+  TEXT
+  AUDIO
+  VIDEO
+}
+
+// Team or Department
+model Team {
+  id     String   @id @default(cuid())
+  name   String   @unique
+  alias  String?
+  type   TeamType @default(TEXT)
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, organizationId])
+}
+
+model Invite {
+  id             String       @id @default(uuid())
+  token          String
+  email          String
+  role           EmployeeRole @default(MEMBER)
+  expirationDate DateTime
+ 
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Invite")
+}
