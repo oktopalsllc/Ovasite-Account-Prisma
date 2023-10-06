@@ -8,6 +8,9 @@
     "start": "npx supervisor server.js",
     "watch": "node --watch server.js"
   },
+  "engines": {
+    "node": ">=16.13"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
