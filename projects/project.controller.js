@@ -1,17 +1,19 @@
-import { 
-    Project, 
-    Organization, 
-    Employee, 
-    EmployeeProjectAssociation,
-    PrismaClient 
-} from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import asyncHandler from "express-async-handler";
 
 const prisma = new PrismaClient();
 
 // Creates a new project
 const createProject = asyncHandler(async (req, res) => {
-    const { name, description, expectedDuration, status, startDate, endDate, organizationId } = req.body;
+    const { 
+        name, 
+        description, 
+        expectedDuration, 
+        status, 
+        startDate, 
+        endDate, 
+        organizationId 
+    } = req.body;
     const newProject = await prisma.project.create({
         data: {
             name,
@@ -37,6 +39,18 @@ const addEmployee = asyncHandler(async (req, res) => {
         },
     });
     res.json(newAssociation);
+});
+
+// Gets a project created by an organization by its id
+const getOrgProject = asyncHandler(async (req, res) => {
+    const { organizationId, id } = req.params;
+    const projects = await prisma.project.findUnique({
+        where: {
+            id: id,
+            organizationId: organizationId
+        },
+    });
+    res.json(projects);
 });
 
 // Gets list of projects created by an organization
@@ -77,7 +91,6 @@ const getProjectEmployees = asyncHandler(async (req, res) => {
     });
     res.json(employees);
 });
-
 
 // Updates the role of an employee in a project
 const editEmployeeRole = asyncHandler(async (req, res) => {
@@ -146,9 +159,10 @@ const deleteProject = asyncHandler(async (req, res) => {
 });
 
 // Export endpoints
-module.exports ={
+module.exports = {
     createProject,
     addEmployee,
+    getOrgProject,
     getOrgProjects,
     getEmployeeProjects,
     getProjectEmployees,
