@@ -36,9 +36,6 @@ model Organization {
   teams     Team[]
   invite    Invite[]
   projects      Project[]
-  forms         Form[]
-  submissions   Submission[]
-  reports       Report[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -177,7 +174,6 @@ model Form {
   projectId       String
   project         Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
-  
   submissions     Submission[]
   reports         Report[]
 
@@ -201,7 +197,6 @@ model Submission {
   projectId       String
   project         Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
-  
   reports         Report[]
 
   createdAt       DateTime @default(now())
@@ -219,7 +214,8 @@ model Report {
   
   creatorId       String
   employee        Employee @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-
+  formId          String
+  form            Form @relation(fields: [formId], references: [id], onDelete: Cascade)
   submissionId    String
   submission      Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   projectId       String
