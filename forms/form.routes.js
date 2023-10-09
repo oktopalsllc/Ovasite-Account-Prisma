@@ -13,7 +13,7 @@ const formRouter = express.Router();
 
 formRouter.post('/create', createForm);
 formRouter.get('/form/:formId', getForm);
-formRouter.get('/forms/:projectId', getForms);
+formRouter.get('/getforms/:projectId', getForms);
 formRouter.get('/employeeform/:creatorId/:formId', getFormByEmployee);
 formRouter.get('/employeeforms/:creatorId', getFormsByEmployee);
 formRouter.patch('/update/:formId', updateForm);

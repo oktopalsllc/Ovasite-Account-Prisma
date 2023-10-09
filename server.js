@@ -11,6 +11,10 @@ import {
   employeeRouter,
   teamsRouter,
   inviteRouter,
+  projectRouter,
+  formRouter,
+  submissionRouter,
+  reportRouter
 } from "./localImport.js";
 dotenv.config();
 
@@ -39,6 +43,10 @@ app.use(`${basePath}/organizations`, organizationsRouter);
 app.use(`${basePath}/organizations`, employeeRouter);
 app.use(`${basePath}/invites`, inviteRouter);
 app.use(`${basePath}/organizations`, teamsRouter);
+app.use(`${basePath}/projects`, projectRouter);
+app.use(`${basePath}/forms`, formRouter);
+app.use(`${basePath}/submissions`, submissionRouter);
+app.use(`${basePath}/reports`, reportRouter);
 
 //Connect to the database before listening
 const PORT = process.env.PORT || process.env.API_PORT;

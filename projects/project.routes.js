@@ -18,7 +18,7 @@ const projectRouter = express.Router();
 projectRouter.post('/createproject', createProject);
 projectRouter.post('/addemployee/:orgId', addEmployee);
 projectRouter.get('/project/:orgId/:projectId', getOrgProject);
-projectRouter.get('/projects/:orgId', getOrgProjects);
+projectRouter.get('/getprojects/:orgId', getOrgProjects);
 projectRouter.get('/employeeprojects/:orgId', getEmployeeProjects);
 projectRouter.get('/projectemployees/:orgId', getProjectEmployees);
 projectRouter.put('/updateprojectrole', editEmployeeRole);
