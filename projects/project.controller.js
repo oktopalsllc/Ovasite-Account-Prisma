@@ -4,28 +4,33 @@ import asyncHandler from "express-async-handler";
 const prisma = new PrismaClient();
 
 // Creates a new project
-const createProject = asyncHandler(async (req, res) => {
-    const { 
-        name, 
-        description, 
-        expectedDuration, 
-        status, 
-        startDate, 
-        endDate, 
-        organizationId 
-    } = req.body;
-    const newProject = await prisma.project.create({
-        data: {
-            name,
-            description,
-            expectedDuration,
-            status,
-            startDate,
-            endDate,
-            organizationId
-        },
-    });
-    res.json(newProject);
+const createProject = asyncHandler(async (req, res, next) => {
+    try{
+        const orgId = req.params.orgId;
+        const { 
+            name, 
+            description, 
+            expectedDuration, 
+            status, 
+            startDate, 
+            endDate
+        } = req.body;
+        const newProject = await prisma.project.create({
+            data: {
+                name,
+                description,
+                expectedDuration,
+                status,
+                startDate,
+                endDate,
+                orgId
+            },
+        });
+        res.json(newProject);
+    }
+    catch(err){
+        next(err);
+    }
 });
 
 // Associates an employee with a project

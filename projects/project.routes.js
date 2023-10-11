@@ -11,20 +11,23 @@ import{
     exportProject,
     deleteProject
 } from './project.controller';
+import { checkOrganizationExists } from '../organizations/organizations.middleware';
 import express from "express";
 
-const projectRouter = express.Router();
+const projectRouter = express.Router({ mergeParams: true });
 
-projectRouter.post('/createproject', createProject);
-projectRouter.post('/addemployee/:orgId', addEmployee);
-projectRouter.get('/project/:orgId/:projectId', getOrgProject);
-projectRouter.get('/getprojects/:orgId', getOrgProjects);
-projectRouter.get('/employeeprojects/:orgId', getEmployeeProjects);
-projectRouter.get('/projectemployees/:orgId', getProjectEmployees);
-projectRouter.put('/updateprojectrole', editEmployeeRole);
-projectRouter.delete('/removeemployee', removeEmployee);
-projectRouter.patch('/update/:projectId', updateProject);
-projectRouter.get('/export/:projectId', exportProject);
-projectRouter.delete('/delete/:projectId', deleteProject);
+projectRouter.use(':/orgId', checkOrganizationExists);
+
+projectRouter.post('/:orgId/create', createProject);
+projectRouter.post('/:orgId/addemployee', addEmployee);
+projectRouter.get('/:orgId/project/:projectId', getOrgProject);
+projectRouter.get('/:orgId/getprojects', getOrgProjects);
+projectRouter.get('/:orgId/:empId/employeeprojects', getEmployeeProjects);
+projectRouter.get('/:orgId/:projectId/projectemployees', getProjectEmployees);
+projectRouter.put('/:orgId/updateprojectrole', editEmployeeRole);
+projectRouter.delete('/:orgId/removeemployee', removeEmployee);
+projectRouter.patch('/:orgId/update/:projectId', updateProject);
+projectRouter.get('/:orgId/export/:projectId', exportProject);
+projectRouter.delete('/:orgId/delete/:projectId', deleteProject);
 
 export default projectRouter;
