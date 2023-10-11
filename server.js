@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import { errorHandler } from "./middleware/errors.js";
 
 import {
   authRouter,
@@ -33,20 +34,22 @@ app.get("/", (req, res) => {
   res.send("<h1>Welcome</h1>");
 });
 
+app.use(errorHandler);
+
 const basePath = "/api/v1";
 // Authentication
 app.use(`${basePath}/auth`, authRouter);
 app.use(`${basePath}/users`, userRouter);
 
 // Administration (Organization)
-app.use(`${basePath}/organizations`, organizationsRouter);
-app.use(`${basePath}/organizations`, employeeRouter);
+app.use(`${basePath}/orgs`, organizationsRouter);
+app.use(`${basePath}/orgs`, employeeRouter);
 app.use(`${basePath}/invites`, inviteRouter);
-app.use(`${basePath}/organizations`, teamsRouter);
-app.use(`${basePath}/projects`, projectRouter);
-app.use(`${basePath}/forms`, formRouter);
-app.use(`${basePath}/submissions`, submissionRouter);
-app.use(`${basePath}/reports`, reportRouter);
+app.use(`${basePath}/orgs`, teamsRouter);
+app.use(`${basePath}/orgs`, projectRouter);
+app.use(`${basePath}/orgs`, formRouter);
+app.use(`${basePath}/orgs`, submissionRouter);
+app.use(`${basePath}/orgs`, reportRouter);
 
 //Connect to the database before listening
 const PORT = process.env.PORT || process.env.API_PORT;
