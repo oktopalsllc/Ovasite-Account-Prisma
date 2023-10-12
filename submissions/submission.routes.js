@@ -8,7 +8,7 @@ import {
     updateSubmission,
     exportSubmission,
     deleteSubmission
-} from './submission.controller';
+} from './submission.controller.js';
 
 import express from "express";
 import { 

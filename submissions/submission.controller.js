@@ -2,11 +2,10 @@ import { PrismaClient } from '@prisma/client';
 import asyncHandler from "express-async-handler";
 import { 
     ForbiddenError, 
-    NotFoundError
+    NotFoundError,
+    InternalServerError
 } from '../middleware/errors.js';
 import { createObjectCsvWriter } from 'csv-writer';
-
-const createCsv = new createObjectCsvWriter();
 
 const prisma = new PrismaClient();
 
@@ -209,16 +208,19 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
         const { id, title, description, geolocation, creatorId, organizationId, formId, projectId } = submission;
 
         // Define CSV header and records
-        const csvHeader = [
-            { id: 'id', title: 'ID' },
-            { id: 'title', title: 'Title' },
-            { id: 'description', title: 'Description' },
-            { id: 'geolocation', title: 'Geolocation' },
-            { id: 'creatorId', title: 'Creator ID' },
-            { id: 'organizationId', title: 'Organization ID' },
-            { id: 'formId', title: 'Form ID' },
-            { id: 'projectId', title: 'Project ID' },
-        ];
+        const csvWriter = new createObjectCsvWriter({
+            path: 'submission.csv',
+            header: [
+                { id: 'id', title: 'ID' },
+                { id: 'title', title: 'Title' },
+                { id: 'description', title: 'Description' },
+                { id: 'geolocation', title: 'Geolocation' },
+                { id: 'creatorId', title: 'Creator ID' },
+                { id: 'organizationId', title: 'Organization ID' },
+                { id: 'formId', title: 'Form ID' },
+                { id: 'projectId', title: 'Project ID' },
+            ]
+        });
 
         const records = [
             {
@@ -234,18 +236,15 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
             }
         ];
 
-        // Write CSV file
-        const csvPath = 'submission.csv';
-        const csvWriter = createCsv({
-            path: csvPath,
-            header: csvHeader
-        });
-
-        await csvWriter.writeRecords(records);
-
-        // Send the CSV file as the response
-        res.download(csvPath);
-    } catch (err) {
+        csvWriter.writeRecords(records)       
+            .then(() => {
+                res.download('submission.csv');
+            })
+            .catch((error) => {
+                throw new InternalServerError(error);
+            });
+    } 
+    catch (err) {
         next(err);
     }
 });
@@ -275,7 +274,7 @@ const deleteSubmission = asyncHandler(async(req, res, next) => {
     }
 });
 
-module.exports = {
+export{
     createSubmission,
     getSubmission,
     getSubmissions,

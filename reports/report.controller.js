@@ -185,7 +185,7 @@ const deleteReport = asyncHandler(async(req, res, next) => {
     }
 });
 
-module.exports = { 
+export { 
     createReport,
     getReport,
     getReports,

@@ -6,7 +6,7 @@ import{
     getSubmissionReports,
     updateReport,
     deleteReport
-} from './report.controller';
+} from './report.controller.js';
 import express from "express";
 
 import { 
