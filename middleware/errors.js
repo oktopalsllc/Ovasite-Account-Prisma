@@ -15,6 +15,7 @@ const notFound = (req, res, next) => {
 
 // Error Handler
 
+<<<<<<< HEAD
 // const errorHandler = (err, req, res, next) => {
 //   const statuscode = res.statusCode == 200 ? 500 : res.statusCode;
 //   res.status(statuscode);
@@ -63,6 +64,16 @@ const errorHandler = (error, req, res, next) => {
     console.error(error);
     res.status(500).json({ message: 'An unknown error occurred' });
   }
+=======
+const errorHandler = (err, req, res, next) => {
+  const statuscode = res.statusCode == 200 ? 500 : res.statusCode;
+  res.status(statuscode);
+  res.json({
+    status: "fail",
+    message: err?.message,
+    stack: err?.stack,
+  });
+>>>>>>> d0130063a1261314eac2e6eedbfb688a0d7734a6
 };
 
-export { errorHandler, notFound, createError, ForbiddenError, NotFoundError, InternalServerError };
+export { errorHandler, notFound, createError };

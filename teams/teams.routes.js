@@ -19,22 +19,22 @@ import { checkOrganizationExists } from "../organizations/organizations.middlewa
 
 const teamsRouter = express.Router({ mergeParams: true });
 
-teamsRouter.use("/:orgId", verifyToken, checkOrganizationExists);
+teamsRouter.use("/:organizationId", verifyToken, checkOrganizationExists);
 
 teamsRouter.post(
-  "/:orgId/teams/:teamId/add-employee",
+  "/:organizationId/teams/:teamId/add-employee",
   addEmployeeToTeam
 );
 teamsRouter.post(
-  "/:orgId/teams/:teamId/remove-employee",
+  "/:organizationId/teams/:teamId/remove-employee",
   removeEmployeeFromTeam
 );
-teamsRouter.get("/:orgId/teams/:teamId/employees", getTeamEmployees);
+teamsRouter.get("/:organizationId/teams/:teamId/employees", getTeamEmployees);
 
-teamsRouter.post("/:orgId/teams", createTeam);
-teamsRouter.get("/:orgId/teams", getAllTeams);
-teamsRouter.get("/:orgId/teams/:teamId", getTeamById);
-teamsRouter.patch("/:orgId/teams/:teamId", updateTeam);
-teamsRouter.delete("/:orgId/teams/:teamId", deleteTeam);
+teamsRouter.post("/:organizationId/teams", createTeam);
+teamsRouter.get("/:organizationId/teams", getAllTeams);
+teamsRouter.get("/:organizationId/teams/:teamId", getTeamById);
+teamsRouter.patch("/:organizationId/teams/:teamId", updateTeam);
+teamsRouter.delete("/:organizationId/teams/:teamId", deleteTeam);
 
 export default teamsRouter;

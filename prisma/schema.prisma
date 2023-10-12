@@ -35,10 +35,13 @@ model Organization {
   employees Employee[]
   teams     Team[]
   invite    Invite[]
+<<<<<<< HEAD
   projects      Project[]
   forms         Form[]
   submissions   Submission[]
   reports       Report[]
+=======
+>>>>>>> d0130063a1261314eac2e6eedbfb688a0d7734a6
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -67,11 +70,6 @@ model Employee {
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
-  projectAssociations EmployeeProjectAssociation[]
-  forms           Form[]
-  submissions     Submission[]
-  reports         Report[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -122,6 +120,7 @@ model Invite {
 
   @@map("Invite")
 }
+<<<<<<< HEAD
 
 model Project {
   id              String       @id @default(uuid())
@@ -238,3 +237,5 @@ model Report {
   
   @@index([formId, projectId, creatorId, submissionId, organizationId])
 }
+=======
+>>>>>>> d0130063a1261314eac2e6eedbfb688a0d7734a6
