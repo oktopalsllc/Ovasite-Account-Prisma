@@ -9,14 +9,25 @@ import{
 } from './report.controller';
 import express from "express";
 
-const reportRouter = express.Router();
+import { 
+    checkOrganizationExists 
+} from '../organizations/organizations.middleware.js';
+import {
+    verifyAdmin,
+    verifyUser
+} from "../middleware/authenticate.js";
 
-reportRouter.post('/create', createReport);
-reportRouter.get('/report/:reportId', getReport);
-reportRouter.get('/getreports/:projectId', getReports);
-reportRouter.get('/employeereports/:employeeId', getReportsByEmployee);
-reportRouter.get('/submissionreports/:submissionId', getSubmissionReports);
-reportRouter.patch('/update/:reportId', updateReport);
-reportRouter.delete('/delete/:reportId', deleteReport);
+const reportRouter = express.Router({ mergeParams: true });
+
+reportRouter.use('/:orgId', verifyUser);
+reportRouter.use('/:orgId', checkOrganizationExists);
+
+reportRouter.post('/:orgId/report/create', createReport);
+reportRouter.get('/:orgId/report/:reportId', getReport);
+reportRouter.get('/:orgId/reports/:projectId', getReports);
+reportRouter.get('/:orgId/userreports/:employeeId/:projectId', getReportsByEmployee);
+reportRouter.get('/:orgId/submissionreports/:submissionId', getSubmissionReports);
+reportRouter.patch('/:orgId/update/report/:reportId', updateReport);
+reportRouter.delete('/:orgId/delete/report/:reportId', deleteReport);
 
 export default reportRouter;

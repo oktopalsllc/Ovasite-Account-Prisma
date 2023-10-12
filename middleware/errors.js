@@ -57,8 +57,9 @@ const errorHandler = (error, req, res, next) => {
       error instanceof NotFoundError || 
       error instanceof InternalServerError) {
         console.error(error);
-      res.status(error.status).json({ message: error.message });
-  } else {
+        res.status(error.status).json({ message: error.message });
+  } 
+  else {
     console.error(error);
     res.status(500).json({ message: 'An unknown error occurred' });
   }
