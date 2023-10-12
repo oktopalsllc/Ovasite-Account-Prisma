@@ -15,14 +15,54 @@ const notFound = (req, res, next) => {
 
 // Error Handler
 
-const errorHandler = (err, req, res, next) => {
-  const statuscode = res.statusCode == 200 ? 500 : res.statusCode;
-  res.status(statuscode);
-  res.json({
-    status: "fail",
-    message: err?.message,
-    stack: err?.stack,
-  });
+// const errorHandler = (err, req, res, next) => {
+//   const statuscode = res.statusCode == 200 ? 500 : res.statusCode;
+//   res.status(statuscode);
+//   res.json({
+//     status: "fail",
+//     message: err?.message,
+//     stack: err?.stack,
+//   });
+// };
+
+// Forbidden error
+class ForbiddenError extends Error {
+  constructor(message) {
+      super(message);
+      this.name = 'ForbiddenError';
+      this.status = 403;
+  }
+}
+
+// Not found error
+class NotFoundError extends Error {
+  constructor(message) {
+      super(message);
+      this.name = 'NotFoundError';
+      this.status = 404;
+  }
+}
+
+// Internal server error
+class InternalServerError extends Error {
+  constructor(message) {
+      super(message);
+      this.name = 'InternalServerError';
+      this.status = 500;
+  }
+}
+
+const errorHandler = (error, req, res, next) => {
+  if (error instanceof ForbiddenError || 
+      error instanceof NotFoundError || 
+      error instanceof InternalServerError) {
+        console.error(error);
+        res.status(error.status).json({ message: error.message });
+  } 
+  else {
+    console.error(error);
+    res.status(500).json({ message: 'An unknown error occurred' });
+  }
 };
 
-export { errorHandler, notFound, createError };
+export { errorHandler, notFound, createError, ForbiddenError, NotFoundError, InternalServerError };
