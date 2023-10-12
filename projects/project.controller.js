@@ -7,7 +7,6 @@ import {
 } from '../middleware/errors.js';
 import { createObjectCsvWriter } from 'csv-writer';
 
-const createCsv = new createObjectCsvWriter();
 const prisma = new PrismaClient();
 
 // Creates a new project
@@ -274,7 +273,7 @@ const exportProject = asyncHandler(async (req, res, next) => {
         });
         if(!project) throw new NotFoundError('Project not found');
 
-        const csvWriter = createCsv({
+        const csvWriter = new createObjectCsvWriter({
             path: 'project.csv', // Set the desired file name
             header: [ // Define the CSV header
                 {id: 'id', title: 'ID'},
@@ -338,7 +337,7 @@ const deleteProject = asyncHandler(async (req, res, next) => {
 });
 
 // Export endpoints
-module.exports = {
+export {
     createProject,
     addEmployee,
     getOrgProject,

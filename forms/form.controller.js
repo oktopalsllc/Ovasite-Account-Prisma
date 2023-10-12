@@ -168,7 +168,7 @@ const deleteForm = asyncHandler(async(req, res, next) => {
 });
 
 // Export endpoints
-module.exports = {
+export{
     createForm,
     getForm,
     getForms,
