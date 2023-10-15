@@ -43,6 +43,9 @@ const verifyUser = (req, res, next) => {
       return next(createError(403, "You are not authorized! User"));
     }
   });
+
+  console.log(req.user);
+  next();
 };
 
 const verifyAdmin = (req, res, next) => {
@@ -57,4 +60,4 @@ const verifyAdmin = (req, res, next) => {
   });
 };
 
-export { verifyToken, verifyAdmin, verifyUser, verifyLogin };
+export { verifyAdmin, verifyLogin, verifyToken, verifyUser };
