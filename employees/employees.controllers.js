@@ -6,11 +6,11 @@ const prisma = new PrismaClient();
 
 // Get all employees by organization
 const getAllEmployees = asyncHandler(async (req, res) => {
-  const { orgId } = req.params;
+  const { organizationId } = req.params;
   try {
     const employees = await prisma.employee.findMany({
       where: {
-        orgId: orgId,
+        organizationId: organizationId,
       },
     });
     res.status(200).json(employees);
@@ -21,13 +21,13 @@ const getAllEmployees = asyncHandler(async (req, res) => {
 
 // Get employee by ID by organization
 const getEmployeeById = asyncHandler(async (req, res) => {
-  const { orgId, employeeId } = req.params;
+  const { organizationId, employeeId } = req.params;
 
   try {
     const employee = await prisma.employee.findUnique({
       where: {
         id: employeeId,
-        orgId,
+        organizationId,
       },
     });
 
@@ -43,15 +43,16 @@ const getEmployeeById = asyncHandler(async (req, res) => {
   }
 });
 
+
 // Update employee by ID by organization
 const updateEmployee = asyncHandler(async (req, res) => {
-  const { orgId, employeeId } = req.params;
+  const { organizationId, employeeId } = req.params;
 
   try {
     const updatedEmployee = await prisma.employee.update({
       where: {
         id: employeeId,
-        orgId,
+        organizationId,
       },
       data: req.body,
     });
@@ -62,29 +63,31 @@ const updateEmployee = asyncHandler(async (req, res) => {
   }
 });
 
+
 // Delete employee by ID by organization
 const deleteEmployee = asyncHandler(async (req, res) => {
-  const { orgId, employeeId } = req.params;
+  const { organizationId, employeeId } = req.params;
 
   try {
     await prisma.employee.delete({
       where: {
         id: employeeId,
-        orgId,
+        organizationId,
       },
     });
 
-    res
-      .status(204)
-      .json({ message: `Employee ${employeeId} deleted successfully.` });
+    res.status(204).json({ message: `Employee ${employeeId} deleted successfully.` });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+
+
+
 // Get a list of teams that an employee is a member of in the organization
 const getTeamsByEmployee = asyncHandler(async (req, res) => {
-  const { orgId, employeeId } = req.params;
+  const { organizationId, employeeId } = req.params;
 
   try {
     // Find the employee and verify it exists
@@ -99,7 +102,7 @@ const getTeamsByEmployee = asyncHandler(async (req, res) => {
     // Find teams where the employee is a member
     const teams = await prisma.team.findMany({
       where: {
-        orgId,
+        organizationId,
         employees: { some: { id: employeeId } },
       },
     });
@@ -112,13 +115,13 @@ const getTeamsByEmployee = asyncHandler(async (req, res) => {
 
 // Change Employee Role
 const changeEmployeeRole = asyncHandler(async (req, res) => {
-  const { orgId, employeeId } = req.params;
+  const { organizationId, employeeId } = req.params;
   const { role } = req.body;
 
   try {
     // Check if the organization exists
     const organization = await prisma.organization.findUnique({
-      where: { id: orgId },
+      where: { id: organizationId },
     });
 
     if (!organization) {
@@ -127,7 +130,7 @@ const changeEmployeeRole = asyncHandler(async (req, res) => {
 
     // Check if the employee exists within the organization
     const employee = await prisma.employee.findUnique({
-      where: { id: employeeId, orgId },
+      where: { id: employeeId, organizationId },
     });
 
     if (!employee) {
@@ -157,13 +160,13 @@ const changeEmployeeRole = asyncHandler(async (req, res) => {
 
 // Search Employees
 const searchEmployees = asyncHandler(async (req, res) => {
-  const { orgId } = req.params;
+  const { organizationId } = req.params;
   const { query } = req.query;
 
   try {
     // Check if the organization exists
     const organization = await prisma.organization.findUnique({
-      where: { id: orgId },
+      where: { id: organizationId },
     });
 
     if (!organization) {
@@ -173,7 +176,7 @@ const searchEmployees = asyncHandler(async (req, res) => {
     // Search for employees based on the query parameter
     const employees = await prisma.employee.findMany({
       where: {
-        orgId,
+        organizationId,
         OR: [
           { fullName: { contains: query, mode: "insensitive" } },
           { email: { contains: query, mode: "insensitive" } },
@@ -189,12 +192,12 @@ const searchEmployees = asyncHandler(async (req, res) => {
 
 // Get Employee Count
 const getEmployeesCount = asyncHandler(async (req, res) => {
-  const { orgId } = req.params;
+  const { organizationId } = req.params;
 
   try {
     // Check if the organization exists
     const organization = await prisma.organization.findUnique({
-      where: { id: orgId },
+      where: { id: organizationId },
     });
 
     if (!organization) {
@@ -203,7 +206,7 @@ const getEmployeesCount = asyncHandler(async (req, res) => {
 
     // Count the number of employees in the organization
     const employeeCount = await prisma.employee.count({
-      where: { orgId },
+      where: { organizationId },
     });
 
     res.status(200).json({ count: employeeCount });
@@ -211,6 +214,7 @@ const getEmployeesCount = asyncHandler(async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 export {
   getAllEmployees,

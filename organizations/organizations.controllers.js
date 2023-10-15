@@ -4,36 +4,38 @@ import ShortUniqueId from "short-unique-id";
 
 const prisma = new PrismaClient();
 
-const { randomUUID } = new ShortUniqueId({ length: 10 });
+const { randomUUID } = new ShortUniqueId({ length: 6 });
 
 // Create a new organization
 const createOrganization = asyncHandler(async (req, res) => {
-  const { name, logo, address } = req.body;
+  const { name } = req.body;
   const { id: userId, email } = req.user;
+
+  // Convert the organization name to lowercase
+  const lowercaseName = name.toLowerCase();
 
   try {
     // Check if an organization with the same name already exists
     const existingOrganization = await prisma.organization.findFirst({
-      where: { name },
+      where: { name: lowercaseName },
     });
 
     if (existingOrganization) {
       return res
         .status(400)
-        .json({ error: `Organization name ${name} already exists.` });
+        .json({ error: `Organization name ${lowercaseName} already exists.` });
     }
 
     // Check if a user with the provided email already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: req.user.email },
     });
 
     // Create a new organization with the provided data
     const newOrganization = await prisma.organization.create({
       data: {
-        name: name,
-        logo: logo || null,
-        address: address || null,
+        name: lowercaseName,
+        imageUrl: "img-1",
         inviteCode: randomUUID(),
         userId,
       },
@@ -44,14 +46,13 @@ const createOrganization = asyncHandler(async (req, res) => {
       data: {
         email: email,
         role: EmployeeRole.OWNER,
-        user: { connect: { id: userId } },
-        organization: { connect: { id: newOrganization.id } },
+        userId,
+        organizationId: newOrganization.id,
       },
     });
 
     res.status(201).json(newOrganization);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -138,7 +139,6 @@ const updateOrganization = asyncHandler(async (req, res) => {
   }
 });
 
-// TODO: handle delete error correctly
 // Delete an organization by ID
 const deleteOrganization = asyncHandler(async (req, res) => {
   const { id } = req.params;
