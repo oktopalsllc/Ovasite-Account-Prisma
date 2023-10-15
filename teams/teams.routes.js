@@ -21,10 +21,7 @@ const teamsRouter = express.Router({ mergeParams: true });
 
 teamsRouter.use("/:orgId", verifyToken, checkOrganizationExists);
 
-teamsRouter.post(
-  "/:orgId/teams/:teamId/add-employee",
-  addEmployeeToTeam
-);
+teamsRouter.post("/:orgId/teams/:teamId/add-employee", addEmployeeToTeam);
 teamsRouter.post(
   "/:orgId/teams/:teamId/remove-employee",
   removeEmployeeFromTeam
