@@ -65,7 +65,7 @@ const loginUser = asyncHandler(async (req, res) => {
         httpOnly: true,
       })
       .status(200)
-      .json({ message: `${email} logged in successfully` });
+      .json({ access_token: token });
   } catch (error) {
     console.error({ error: "An error occurred while logging in" });
   }

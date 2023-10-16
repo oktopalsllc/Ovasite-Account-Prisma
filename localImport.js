@@ -2,7 +2,6 @@
 import authRouter from "./auth/auth.routes.js";
 import userRouter from "./users/users.routes.js";
 import employeeRouter from "./employees/employees.routes.js";
-import teamsRouter from "./teams/teams.routes.js";
 import inviteRouter from "./invites/invites.routes.js";
 import organizationsRouter from "./organizations/organizations.routes.js";
 import projectRouter from "./projects/project.routes.js";
@@ -15,7 +14,6 @@ export {
   userRouter,
   organizationsRouter,
   employeeRouter,
-  teamsRouter,
   inviteRouter,
   projectRouter,
   formRouter,
