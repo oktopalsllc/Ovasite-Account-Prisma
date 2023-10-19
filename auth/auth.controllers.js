@@ -7,11 +7,11 @@ const prisma = new PrismaClient();
 
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, isAdmin } = req.body;
 
     const lowercaseEmail = email.toLowerCase();
 
-    // check if the user already exists
+    // Check if the user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: lowercaseEmail },
     });
@@ -19,11 +19,13 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!existingUser) {
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      await prisma.user.create({
-        data: { email: lowercaseEmail, password: hashedPassword },
+      const newUser = await prisma.user.create({
+        data: { email: lowercaseEmail, password: hashedPassword, isAdmin },
       });
 
-      return res.status(201).json({ message: "User registered successfully" });
+      return res
+        .status(201)
+        .json({ user: newUser, message: "User registered successfully" });
     } else {
       res.status(400).json({ error: "User already exists" });
     }
@@ -55,6 +57,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const tokenPayload = {
       id: user.id,
       email: user.email,
+      isAdmin: user.isAdmin,
     };
 
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
