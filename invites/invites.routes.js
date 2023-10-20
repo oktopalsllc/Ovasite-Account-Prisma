@@ -1,9 +1,17 @@
 import express from "express";
+import { verifyToken } from "../middleware/authenticate.js";
 import { generateInviteLink, joinOrganization } from "./invites.controllers.js";
 
-const inviteRouter = express.Router();
+import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
 
-inviteRouter.post("/:organizationId/generate-invite-link", generateInviteLink);
+const inviteRouter = express.Router({ mergeParams: true });
+inviteRouter.use("/:orgId", verifyToken);
+
+inviteRouter.post(
+  "/:orgId/generate-invite-link",
+  checkOrganizationExists,
+  generateInviteLink
+);
 inviteRouter.post("/join/:inviteToken", joinOrganization);
 
 export default inviteRouter;

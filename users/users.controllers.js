@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 // TODO: users account should be permanently deleted after 30 days of clicking delete
 // TODO: user can undo their account deletion
 // TODO: the deletion can be a cronJob that will complete after 30days of requesting deletion
+// TODO: create updateUser endpoint to change 
 
 const getSingleUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -15,6 +16,12 @@ const getSingleUser = asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id: id },
     });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: `User with the specified ID ${id} was not found` });
+    }
     res.status(200).json(user);
   } catch (err) {
     throw new Error(err);
@@ -33,6 +40,15 @@ const getAllUsers = asyncHandler(async (req, res) => {
 const deleteUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   try {
+    const user = await prisma.user.findFirst({
+      where: { id: id },
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: `User with the specified ID ${id} was not found` });
+    }
     const deletedUser = await prisma.user.delete({
       where: {
         id,
@@ -51,24 +67,4 @@ const deleteUser = asyncHandler(async (req, res) => {
   }
 });
 
-const updateUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { name, phone } = req.body;
-  try {
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      { $set: { name, phone } },
-      { new: true }
-    );
-
-    if (!updatedUser) {
-      return res
-        .status(404)
-        .json({ message: `User with the specified ID ${id} was not found` });
-    }
-    res.status(202).json(updatedUser);
-  } catch (err) {
-    throw new Error(err);
-  }
-});
-export { getSingleUser, getAllUsers, updateUser, deleteUser };
+export { deleteUser, getAllUsers, getSingleUser };

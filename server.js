@@ -10,7 +10,6 @@ import {
   userRouter,
   organizationsRouter,
   employeeRouter,
-  teamsRouter,
   inviteRouter,
   projectRouter,
   formRouter,
@@ -45,7 +44,6 @@ app.use(`${basePath}/users`, userRouter);
 app.use(`${basePath}/orgs`, organizationsRouter);
 app.use(`${basePath}/orgs`, employeeRouter);
 app.use(`${basePath}/invites`, inviteRouter);
-app.use(`${basePath}/orgs`, teamsRouter);
 app.use(`${basePath}/orgs`, projectRouter);
 app.use(`${basePath}/orgs`, formRouter);
 app.use(`${basePath}/orgs`, submissionRouter);
