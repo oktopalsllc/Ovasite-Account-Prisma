@@ -26,7 +26,7 @@ formRouter.get('/:orgId/form/:formId', getForm);
 formRouter.get('/:orgId/forms/:projectId', getForms);
 formRouter.get('/:orgId/userform/:creatorId/:formId', getFormByEmployee);
 formRouter.get('/:orgId/userforms/:creatorId/:projectId', getFormsByEmployee);
-formRouter.patch('/:orgId/update/form/:formId', updateForm);
-formRouter.delete('/:orgId/delete/form/:formId', deleteForm);
+formRouter.patch('/:orgId/form/update/:formId', updateForm);
+formRouter.delete('/:orgId/form/delete/:formId', deleteForm);
 
 export default formRouter;
