@@ -27,7 +27,7 @@ reportRouter.get('/:orgId/report/:reportId', getReport);
 reportRouter.get('/:orgId/reports/:projectId', getReports);
 reportRouter.get('/:orgId/userreports/:employeeId/:projectId', getReportsByEmployee);
 reportRouter.get('/:orgId/submissionreports/:submissionId', getSubmissionReports);
-reportRouter.patch('/:orgId/report/update/:reportId', updateReport);
-reportRouter.delete('/:orgId/report/delete/:reportId', deleteReport);
+reportRouter.patch('/:orgId/update/report/:reportId', updateReport);
+reportRouter.delete('/:orgId/delete/report/:reportId', deleteReport);
 
 export default reportRouter;
