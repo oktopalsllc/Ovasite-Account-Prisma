@@ -29,7 +29,7 @@ app.use(cors());
 // app.use(helmet());
 
 //Routes go here
-app.get("/health", (req, res) => {
+app.get("/", (req, res) => {
   res.send("<h1>Healthy🎉🎊</h1>");
 });
 
