@@ -6,6 +6,7 @@ import {
     InternalServerError
 } from '../middleware/errors.js';
 import { createObjectCsvWriter } from 'csv-writer';
+import { createAuditLog } from '../helpers/auditHelper.js';
 
 const prisma = new PrismaClient();
 
@@ -37,6 +38,16 @@ const createSubmission = asyncHandler(async(req, res, next) => {
                 projectId
             },
         });
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'create',
+            'Submission',
+            '',
+            JSON.stringify(newSubmission),
+            newSubmission.id.toString()
+        );
         res.json({message: 'Submission created successfully', status: true, newSubmission});
     }
     catch(err){
@@ -107,29 +118,6 @@ const getFormSubmissions = asyncHandler(async(req, res, next) => {
     }
 });
 
-// Get a single submission by employee with submission id
-const getEmployeeSubmission = asyncHandler(async(req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const id  = req.params.submissionId;
-        const creatorId = req.params.employeeId;
-        const submission = await prisma.submission.findUnique({
-            where: {
-                id: id,
-                creatorId: creatorId
-            },
-        });
-        if(!submission) throw new NotFoundError('Submission not found');
-        res.json(submission);
-    }
-    catch(err){
-        next(err);
-    }
-});
-
 // Get submissions by employee
 const getEmployeeSubmissions = asyncHandler(async(req, res, next) => {
     try{
@@ -163,6 +151,11 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
         }
         const id = req.params.submissionId;
         const { title, description, submissionData, geolocation } = req.body;
+        const oldValues = await prisma.submission.findUnique({
+            where: {
+                id: id,
+            },
+        });
         const updatedSubmission = await prisma.submission.update({
             where: {
                 id: id
@@ -175,6 +168,16 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
             },
         });
         if(!updatedSubmission) throw new NotFoundError('Submission not found');
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'update',
+            'Submission',
+            JSON.stringify(oldValues),
+            JSON.stringify(updatedSubmission),
+            updatedSubmission.id.toString()
+        );
         res.json({
             message: 'Submission updated successfully',
             status:true,
@@ -263,6 +266,16 @@ const deleteSubmission = asyncHandler(async(req, res, next) => {
             },
         });
         if(!deletedSubmission) throw new NotFoundError('Submission not found');
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'delete',
+            'Submission',
+            JSON.stringify(deletedSubmission),
+            '',
+            deletedSubmission.id.toString()
+        );
         res.json({
             message: 'Submission deleted successfully',
             status: true,
@@ -279,7 +292,6 @@ export{
     getSubmission,
     getSubmissions,
     getFormSubmissions,
-    getEmployeeSubmission,
     getEmployeeSubmissions,
     updateSubmission,
     exportSubmission,

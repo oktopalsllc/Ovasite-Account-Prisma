@@ -4,6 +4,7 @@ import {
     ForbiddenError, 
     NotFoundError
 } from '../middleware/errors.js';
+import { createAuditLog } from '../helpers/auditHelper.js';
 
 const prisma = new PrismaClient();
 
@@ -33,6 +34,16 @@ const createReport = asyncHandler(async(req, res, next) => {
                 projectId
             },
         });
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'create',
+            'Report',
+            '',
+            JSON.stringify(newReport),
+            newReport.id.toString()
+        );
         res.json({
             message: 'Report created successfully',
             status: true,
@@ -139,6 +150,11 @@ const updateReport = asyncHandler(async(req, res, next) => {
             throw new ForbiddenError('User is not within organization');
         }
         const { title, reportData } = req.body;
+        const oldValues = await prisma.report.findUnique({
+            where: {
+                id: id,
+            },
+        });
         const updatedReport = await prisma.report.update({
             where: {
                 id: id
@@ -148,7 +164,17 @@ const updateReport = asyncHandler(async(req, res, next) => {
                 reportData
             },
         });        
-        if(!report) throw new NotFoundError('Report found');
+        if(!updatedReport) throw new NotFoundError('Report found');
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'update',
+            'Report',
+            JSON.stringify(oldValues),
+            JSON.stringify(updatedReport),
+            oldValues.id.toString()
+        );
         res.json({
             message: 'Report updated successfully',
             status: true,
@@ -173,7 +199,17 @@ const deleteReport = asyncHandler(async(req, res, next) => {
                 id: id
             },
         });
-        if(!report) throw new NotFoundError('Report found');
+        if(!deletedReport) throw new NotFoundError('Report found');
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'delete',
+            'Report',
+            JSON.stringify(deletedReport),
+            '',
+            deletedReport.id.toString()
+        );
         res.json({
             message: 'Report deleted successfully',
             status: true,

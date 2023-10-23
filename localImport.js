@@ -8,6 +8,7 @@ import projectRouter from "./projects/project.routes.js";
 import formRouter from "./forms/form.routes.js";
 import submissionRouter from "./submissions/submission.routes.js";
 import reportRouter from "./reports/report.routes.js";
+import auditRouter from "./audits/audit.routes.js";
 
 export {
   authRouter,
@@ -18,5 +19,6 @@ export {
   projectRouter,
   formRouter,
   submissionRouter,
-  reportRouter
+  reportRouter,
+  auditRouter
 };

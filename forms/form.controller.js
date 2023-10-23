@@ -4,6 +4,7 @@ import {
     ForbiddenError, 
     NotFoundError
 } from '../middleware/errors.js';
+import { createAuditLog } from '../helpers/auditHelper.js';
 
 const prisma = new PrismaClient();
 
@@ -25,6 +26,16 @@ const createForm = asyncHandler(async(req, res, next) => {
                 projectId
             },
         });
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'create',
+            'Form',
+            '',
+            JSON.stringify(newForm),
+            newForm.id.toString()
+        );
         res.json({message:'Form created successfully', status: true, newForm});
     }
     catch(err){
@@ -74,29 +85,6 @@ const getForms = asyncHandler(async(req, res, next) => {
     }
 });
 
-// Gets a form by an employee
-const getFormByEmployee = asyncHandler(async(req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const creatorId = req.params.creatorId;
-        const  id = req.params.formId;
-        const form = await prisma.form.findUnique({
-            where: {
-                id: id,
-                creatorId: creatorId
-            },
-        });
-        if(!form) throw new NotFoundError('Form not found');
-        res.json(form);
-    }
-    catch(err){
-        next(err);
-    }
-});
-
 // Gets forms by an employee
 const getFormsByEmployee = asyncHandler(async(req, res, next) => {
     try{
@@ -128,6 +116,11 @@ const updateForm = asyncHandler(async(req, res, next) => {
         }
         const id = req.params.formId;
         const { title, formData, description } = req.body;
+        const oldValues = await prisma.form.findUnique({
+            where: {
+                id: id,
+            },
+        });
         const updatedForm = await prisma.form.update({
             where: {
                 id: id
@@ -139,6 +132,16 @@ const updateForm = asyncHandler(async(req, res, next) => {
             },
         });
         if(!updatedForm) throw new NotFoundError('Form does not exist'); 
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'update',
+            'Form',
+            JSON.stringify(oldValues),
+            JSON.stringify(updateForm),
+            oldValues.id.toString()
+        );
         res.json({message: 'Form updated successfully', status: true, updatedForm});
     }
     catch(err){
@@ -160,6 +163,16 @@ const deleteForm = asyncHandler(async(req, res, next) => {
             },
         });
         if(!deletedForm) throw new NotFoundError('Form does not exist');
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'delete',
+            'Form',
+            JSON.stringify(deletedForm),
+            '',
+            deletedForm.id.toString()
+        );
         res.json({message: 'Form deleted successfully', status: true, deletedForm});
     }
     catch(err){
@@ -172,7 +185,6 @@ export{
     createForm,
     getForm,
     getForms,
-    getFormByEmployee,
     getFormsByEmployee,
     updateForm,
     deleteForm
