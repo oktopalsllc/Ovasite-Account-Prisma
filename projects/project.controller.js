@@ -6,6 +6,7 @@ import {
     InternalServerError 
 } from '../middleware/errors.js';
 import { createObjectCsvWriter } from 'csv-writer';
+import { createAuditLog } from '../helpers/auditHelper.js';
 
 const prisma = new PrismaClient();
 
@@ -34,7 +35,17 @@ const createProject = asyncHandler(async (req, res, next) => {
                 endDate,
                 orgId
             },
-        });
+        });        
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'create',
+            'Project',
+            '',
+            JSON.stringify(newProject),
+            newProject.id.toString()
+        );
         res.json({message: 'Project created successfully', status: true, newProject});
     }
     catch(err){
@@ -70,6 +81,16 @@ const addEmployee = asyncHandler(async (req, res, next) => {
                 role
             },
         });
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null,  
+            orgId,
+            'create',
+            'ProjectAssociation',
+            '',
+            JSON.stringify(newAssociation),
+            newAssociation.id.toString()
+        );
         res.json({message: 'Employee added successfully', status: true, newAssociation});
     }
     catch(err){
@@ -175,6 +196,12 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
         }
         const { empId, role } = req.body;
         const projectId = req.params.projectId;
+        const oldValues = await prisma.employeeProjectAssociation.findUnique({
+            where: {
+                employeed: empId,
+                projectId: projectId
+            },
+        });
         const updatedRole = await prisma.employeeProjectAssociation.update({
             where: {
                 employeed: empId,
@@ -185,6 +212,17 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
             },
         });
         if(!updatedRole) throw new NotFoundError('Employee does not exist in this project');
+        
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null,  
+            orgId,
+            'update',
+            'ProjectAssociation',
+            JSON.stringify(oldValues),
+            JSON.stringify(updatedRole),
+            oldValues.id.toString()
+        );
         res.json({message: 'Role updated successfully', status: true, updatedRole});
     }
     catch(err) {
@@ -208,6 +246,16 @@ const removeEmployee = asyncHandler(async (req, res, next) => {
             },
         });
         if(!deletedAssociation) throw new NotFoundError('Employee does not exist in this project');
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null,  
+            orgId,
+            'delete',
+            'ProjectAssociation',
+            JSON.stringify(deletedAssociation),
+            '',
+            deletedAssociation.id.toString()
+        );
         res.json({
             message: 'Employee removed from project successfully', 
             status: true, 
@@ -236,6 +284,11 @@ const updateProject = asyncHandler(async (req, res, next) => {
             startDate, 
             endDate 
         } = req.body;
+        const oldValues = await prisma.project.findUnique({
+            where: {
+                id: projectId
+            },
+        });
         const updatedProject = await prisma.project.update({
             where: {
                 id: projectId
@@ -251,6 +304,16 @@ const updateProject = asyncHandler(async (req, res, next) => {
             },
         });
         if(!updatedProject) throw new NotFoundError('Project not found');
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null,  
+            orgId,
+            'update',
+            'Project',
+            JSON.stringify(oldValues),
+            JSON.stringify(updatedProject),
+            oldValues.id.toString()
+        );
         res.json({message: 'Project updated successfully', status: true, updatedProject});
     }
     catch (err) {
@@ -329,6 +392,16 @@ const deleteProject = asyncHandler(async (req, res, next) => {
             },
         });
         if(!deletedProject) throw new NotFoundError('Project not found');
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null,  
+            orgId,
+            'delete',
+            'Project',
+            JSON.stringify(deletedProject),
+            '',
+            deletedProject.id.toString()
+        );
         res.json({message: 'Project deleted', status: true, deletedProject});
     }
     catch (err) {
