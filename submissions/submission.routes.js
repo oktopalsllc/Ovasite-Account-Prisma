@@ -3,7 +3,6 @@ import {
     getSubmission,
     getSubmissions,
     getFormSubmissions,
-    getEmployeeSubmission,
     getEmployeeSubmissions,
     updateSubmission,
     exportSubmission,
