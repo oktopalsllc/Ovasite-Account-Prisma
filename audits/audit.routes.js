@@ -2,7 +2,8 @@ import{
     getAuditLogs,
     getOrgAuditLogs,
     getAuditLog,
-    deleteAuditLog
+    deleteAuditLog,
+    deleteOrgAuditLog
 } from './audit.controller.js';
 import express from "express";
 import { 
@@ -21,5 +22,6 @@ auditRouter.get('/:orgId/audits', getAuditLogs);
 auditRouter.get('/:orgId/orgaudits', getOrgAuditLogs);
 auditRouter.get('/:orgId/audit/:auditId', getAuditLog);
 auditRouter.delete('/:orgId/audit/delete/:auditId', deleteAuditLog);
+auditRouter.delete('/:orgId/orgaudit/delete/:auditId', deleteOrgAuditLog);
 
 export default auditRouter;
