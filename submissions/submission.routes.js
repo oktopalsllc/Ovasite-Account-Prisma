@@ -28,7 +28,6 @@ submissionRouter.post('/:orgId/submission/create', createSubmission);
 submissionRouter.get('/:orgId/submission/:submissionId', getSubmission);
 submissionRouter.get('/:orgId/submissions/:projectId', getSubmissions);
 submissionRouter.get('/:orgId/submissions/:formId', getFormSubmissions);
-submissionRouter.get('/:orgId/usersubmission/:employeeId/:submissionId', getEmployeeSubmission);
 submissionRouter.get('/:orgId/usersubmissions/:employeeId/:projectId', getEmployeeSubmissions);
 submissionRouter.patch('/:orgId/submission/update/:submissionId', updateSubmission);
 submissionRouter.get('/:orgId/submission/export/:submissionId', exportSubmission);

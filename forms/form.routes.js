@@ -2,7 +2,6 @@ import {
     createForm,
     getForm,
     getForms,
-    getFormByEmployee,
     getFormsByEmployee,
     updateForm,
     deleteForm
@@ -24,7 +23,6 @@ formRouter.use('/:orgId', checkOrganizationExists);
 formRouter.post('/:orgId/form/create', createForm);
 formRouter.get('/:orgId/form/:formId', getForm);
 formRouter.get('/:orgId/forms/:projectId', getForms);
-formRouter.get('/:orgId/userform/:creatorId/:formId', getFormByEmployee);
 formRouter.get('/:orgId/userforms/:creatorId/:projectId', getFormsByEmployee);
 formRouter.patch('/:orgId/form/update/:formId', updateForm);
 formRouter.delete('/:orgId/form/delete/:formId', deleteForm);

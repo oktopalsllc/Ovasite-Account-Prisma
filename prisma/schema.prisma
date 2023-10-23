@@ -175,7 +175,7 @@ model Submission {
   title          String
   description    String
   submissionData String
-  geolocation    String
+  geolocation    String?
 
   creatorId String
   employee  Employee @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -216,4 +216,17 @@ model Report {
   updatedAt DateTime @updatedAt
 
   @@index([formId, projectId, creatorId, submissionId, organizationId])
+}
+
+model Audit {
+  id              String @id @default(uuid())
+  userMail        String
+  userIpAddress   String?
+  orgId           String
+  type            String
+  tableName       String
+  dateTime        DateTime @default(now())
+  oldValues       String
+  newValues       String
+  primaryKey      String
 }
