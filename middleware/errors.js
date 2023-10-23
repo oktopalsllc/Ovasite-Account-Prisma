@@ -2,6 +2,7 @@ const createError = (status, message) => {
   const err = new Error();
   err.status = status;
   err.message = message;
+  console.error(err);
   return err;
 };
 
@@ -28,41 +29,49 @@ const notFound = (req, res, next) => {
 // Forbidden error
 class ForbiddenError extends Error {
   constructor(message) {
-      super(message);
-      this.name = 'ForbiddenError';
-      this.status = 403;
+    super(message);
+    this.name = "ForbiddenError";
+    this.status = 403;
   }
 }
 
 // Not found error
 class NotFoundError extends Error {
   constructor(message) {
-      super(message);
-      this.name = 'NotFoundError';
-      this.status = 404;
+    super(message);
+    this.name = "NotFoundError";
+    this.status = 404;
   }
 }
 
 // Internal server error
 class InternalServerError extends Error {
   constructor(message) {
-      super(message);
-      this.name = 'InternalServerError';
-      this.status = 500;
+    super(message);
+    this.name = "InternalServerError";
+    this.status = 500;
   }
 }
 
 const errorHandler = (error, req, res, next) => {
-  if (error instanceof ForbiddenError || 
-      error instanceof NotFoundError || 
-      error instanceof InternalServerError) {
-        console.error(error);
-        res.status(error.status).json({ message: error.message });
-  } 
-  else {
+  if (
+    error instanceof ForbiddenError ||
+    error instanceof NotFoundError ||
+    error instanceof InternalServerError
+  ) {
     console.error(error);
-    res.status(500).json({ message: 'An unknown error occurred' });
+    res.status(error.status).json({ message: error.message });
+  } else {
+    console.error(error);
+    res.status(500).json({ message: "An unknown error occurred" });
   }
 };
 
-export { errorHandler, notFound, createError, ForbiddenError, NotFoundError, InternalServerError };
+export {
+  ForbiddenError,
+  InternalServerError,
+  NotFoundError,
+  createError,
+  errorHandler,
+  notFound,
+};

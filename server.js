@@ -10,12 +10,12 @@ import {
   userRouter,
   organizationsRouter,
   employeeRouter,
-  teamsRouter,
   inviteRouter,
   projectRouter,
   formRouter,
   submissionRouter,
-  reportRouter
+  reportRouter,
+  auditRouter
 } from "./localImport.js";
 dotenv.config();
 
@@ -31,7 +31,7 @@ app.use(cors());
 
 //Routes go here
 app.get("/", (req, res) => {
-  res.send("<h1>Welcome</h1>");
+  res.send("<h1>Healthy🎉🎊</h1>");
 });
 
 app.use(errorHandler);
@@ -45,11 +45,11 @@ app.use(`${basePath}/users`, userRouter);
 app.use(`${basePath}/orgs`, organizationsRouter);
 app.use(`${basePath}/orgs`, employeeRouter);
 app.use(`${basePath}/invites`, inviteRouter);
-app.use(`${basePath}/orgs`, teamsRouter);
 app.use(`${basePath}/orgs`, projectRouter);
 app.use(`${basePath}/orgs`, formRouter);
 app.use(`${basePath}/orgs`, submissionRouter);
 app.use(`${basePath}/orgs`, reportRouter);
+app.use(`${basePath}/orgs`, auditRouter);
 
 //Connect to the database before listening
 const PORT = process.env.PORT || process.env.API_PORT;

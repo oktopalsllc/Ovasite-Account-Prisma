@@ -1,8 +1,8 @@
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
 import { v4 as uuidv4 } from "uuid";
-import bcrypt from "bcrypt";
 import sendMail from "../services/sendMail.js";
-import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -10,7 +10,8 @@ const url = "http://localhost/api/v1";
 
 const generateInviteLink = asyncHandler(async (req, res) => {
   let { email, role } = req.body;
-  const { organizationId } = req.params;
+  const { orgId: organizationId } = req.params;
+  const { id: userId } = req.user;
   email = email.toLowerCase();
 
   try {
@@ -47,8 +48,9 @@ const generateInviteLink = asyncHandler(async (req, res) => {
         token: inviteToken,
         email,
         role,
-        organization: { connect: { id: organizationId } },
         expirationDate: expireDate,
+        organization: { connect: { id: organizationId } },
+        user: { connect: { id: userId } },
       },
     });
 
@@ -143,6 +145,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
         email: lowercasedEmail,
         organization: { connect: { id: organization.id } },
         role: invite.role,
+        user: { connect: { id: existingUser.id } },
       },
     });
 
@@ -161,6 +164,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
 
     res.status(200).json({ user: newEmployee });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
