@@ -67,6 +67,25 @@ const getAuditLog = asyncHandler(async (req, res, next) => {
 // Delete a specific audit log
 const deleteAuditLog = asyncHandler(async (req, res, next) => {
     try {
+        const id = req.params.auditId;
+        if (!req.user || req.user.organizationId !== orgId) {
+            throw new ForbiddenError('User is not within organization');
+        }
+        const deletedLog = await prisma.audit.delete({
+            where: {
+                id: id
+            },
+        });
+        res.json(deletedLog);
+    } 
+    catch (err) {
+        next(err);
+    }
+});
+
+// Delete a specific org audit log
+const deleteOrgAuditLog = asyncHandler(async (req, res, next) => {
+    try {
         const { orgId, id } = req.params;
         if (!req.user || req.user.organizationId !== orgId) {
             throw new ForbiddenError('User is not within organization');
@@ -88,5 +107,6 @@ export{
     getAuditLogs,
     getOrgAuditLogs,
     getAuditLog,
-    deleteAuditLog
+    deleteAuditLog,
+    deleteOrgAuditLog,
 };
