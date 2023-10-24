@@ -11,12 +11,6 @@ CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN', 'OWNER');
 -- CreateEnum
 CREATE TYPE "Source" AS ENUM ('FACEBOOK', 'TWITTER', 'INSTAGRAM', 'LINKEDIN', 'GOOGLE', 'OTHER');
 
--- DropForeignKey
-ALTER TABLE "Team" DROP CONSTRAINT "Team_organizationId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Team" DROP CONSTRAINT "Team_userId_fkey";
-
 -- AlterTable
 ALTER TABLE "User" DROP COLUMN "isAdmin",
 ADD COLUMN     "passwordResetAt" TIMESTAMP(3),
@@ -24,6 +18,3 @@ ADD COLUMN     "passwordResetToken" TEXT,
 ADD COLUMN     "phoneNumber" TEXT,
 ADD COLUMN     "role" "UserRole" NOT NULL DEFAULT 'USER',
 ADD COLUMN     "source" "Source" NOT NULL DEFAULT 'OTHER';
-
--- DropTable
-DROP TABLE "Team";
