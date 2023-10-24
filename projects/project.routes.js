@@ -15,7 +15,7 @@ import {
   checkOrganizationExists 
 } from '../organizations/organizations.middleware.js';
 import {
-    verifyAdmin,
+    
     verifyUser
 } from "../middleware/authenticate.js";
 import express from "express";

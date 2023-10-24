@@ -3,6 +3,7 @@ import asyncHandler from "express-async-handler";
 import ShortUniqueId from "short-unique-id";
 
 const prisma = new PrismaClient();
+// TODO: transfer ownership of organizations to employee within the organization
 
 const { randomUUID } = new ShortUniqueId({ length: 10 });
 
@@ -20,7 +21,7 @@ const createOrganization = asyncHandler(async (req, res) => {
     if (existingOrganization) {
       return res
         .status(400)
-        .json({ error: `Organization name ${name} already exists.` });
+        .json({ error: `organization name ${name} already exists.` });
     }
 
     // Check if a user with the provided email already exists
@@ -85,6 +86,8 @@ const getAllOrganizations = asyncHandler(async (req, res) => {
   }
 });
 
+
+
 // Get an organization by ID
 const getOrganizationById = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -102,7 +105,7 @@ const getOrganizationById = asyncHandler(async (req, res) => {
     });
 
     if (!organization) {
-      res.status(404).json(`Organization ${id} not found`);
+      res.status(404).json(`organization ${id} not found`);
     }
 
     res.status(200).json(organization);
@@ -123,7 +126,7 @@ const updateOrganization = asyncHandler(async (req, res) => {
     if (!existingOrganization) {
       return res
         .status(404)
-        .json({ error: `Organization with ID ${id} not found.` });
+        .json({ error: `organization with ID ${id} not found.` });
     }
 
     // Update the organization data
@@ -152,15 +155,30 @@ const deleteOrganization = asyncHandler(async (req, res) => {
     if (!existingOrganization) {
       return res
         .status(404)
-        .json({ error: `Organization with ID ${id} not found.` });
+        .json({ error: `organization with ID ${id} not found.` });
     }
 
     await prisma.organization.delete({
       where: { id },
     });
 
-    res.status(204).json(`Organization ${id} deleted`);
+    res.status(204).json(`organization ${id} deleted`);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+const getOrganizationOwners = asyncHandler(async (req, res) => {
+  try {
+    const employees = await prisma.employee.findMany({
+      where: {
+        role: EmployeeRole.OWNER, // Filter by the role "OWNER"
+      },
+    });
+    res.status(200).json(employees);
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -171,4 +189,5 @@ export {
   getAllOrganizations,
   getOrganizationById,
   updateOrganization,
+  getOrganizationOwners
 };
