@@ -8,7 +8,8 @@ const prisma = new PrismaClient();
 // TODO: users account should be permanently deleted after 30 days of clicking delete
 // TODO: user can undo their account deletion
 // TODO: the deletion can be a cronJob that will complete after 30days of requesting deletion
-// TODO: create updateUser endpoint to change 
+// TODO: create updateUser endpoint to change
+// TODO: get user by email
 
 const getSingleUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -27,12 +28,32 @@ const getSingleUser = asyncHandler(async (req, res) => {
     throw new Error(err);
   }
 });
+const getUserByEmail = asyncHandler(async (req, res) => {
+  const { email } = req.query;
+  console.log(req.query);
+  console.log("email", email);
+  try {
+    const user = await prisma.user.findFirst({
+      where: { email: email },
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: `User with the specified ID ${email} was not found` });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    throw new Error(err);
+  }
+});
 
 const getAllUsers = asyncHandler(async (req, res) => {
   try {
     const users = await prisma.user.findMany();
     res.status(200).json(users);
   } catch (err) {
+    console.error(err);
     throw new Error(err);
   }
 });
@@ -67,4 +88,4 @@ const deleteUser = asyncHandler(async (req, res) => {
   }
 });
 
-export { deleteUser, getAllUsers, getSingleUser };
+export { deleteUser, getAllUsers, getSingleUser, getUserByEmail };
