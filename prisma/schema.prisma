@@ -27,7 +27,7 @@ model User {
 enum UserRole {
   USER
   ADMIN
-  OWNER
+  SUPER_ADMIN
 }
 
 enum Source {
