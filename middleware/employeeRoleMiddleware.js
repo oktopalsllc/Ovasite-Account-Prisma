@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { EmployeeRole, PrismaClient } from "@prisma/client";
 import asyncHandler from "express-async-handler";
 
 const prisma = new PrismaClient();
@@ -7,14 +7,14 @@ const prisma = new PrismaClient();
 function employeeRoleBasedMiddleware(allowedRoles) {
   return asyncHandler(async (req, res, next) => {
     const { id: userId } = req.user;
-    const { orgId } = req.params;
+    const { orgId: organizationId } = req.params;
 
     try {
       // Query the database to check if the user has an associated employee within the organization
       const employee = await prisma.employee.findFirst({
         where: {
           userId,
-          orgId,
+          organizationId,
         },
       });
 
@@ -35,20 +35,29 @@ function employeeRoleBasedMiddleware(allowedRoles) {
 }
 
 // Specific role-based middleware functions
-export const managerMiddleware = employeeRoleBasedMiddleware(["MANAGER"]);
-export const adminMiddleware = employeeRoleBasedMiddleware(["ADMIN"]);
-export const ownerMiddleware = employeeRoleBasedMiddleware(["OWNER"]);
-export const guestMiddleware = employeeRoleBasedMiddleware(["GUEST"]);
+const memberMiddleware = employeeRoleBasedMiddleware([EmployeeRole.MEMBER]);
+const adminMiddleware = employeeRoleBasedMiddleware([EmployeeRole.ADMIN]);
+const ownerMiddleware = employeeRoleBasedMiddleware([EmployeeRole.OWNER]);
+const guestMiddleware = employeeRoleBasedMiddleware([EmployeeRole.GUEST]);
 
-// Middleware for Manager or Admin roles
-export const managerAndAdminMiddleware = employeeRoleBasedMiddleware([
-  "MANAGER",
-  "ADMIN",
+// Middleware for Member or Admin roles
+const memberAndAdminMiddleware = employeeRoleBasedMiddleware([
+  EmployeeRole.MEMBER,
+  EmployeeRole.ADMIN,
 ]);
 
-// Middleware that includes all roles (MANAGER, ADMIN, OWNER)
-export const allRolesMiddleware = employeeRoleBasedMiddleware([
-  "MANAGER",
-  "ADMIN",
-  "OWNER",
+// Middleware that includes all roles (MEMBER, ADMIN, OWNER)
+const allRolesMiddleware = employeeRoleBasedMiddleware([
+  EmployeeRole.MEMBER,
+  EmployeeRole.ADMIN,
+  EmployeeRole.OWNER,
 ]);
+
+export {
+  adminMiddleware,
+  allRolesMiddleware,
+  guestMiddleware,
+  memberAndAdminMiddleware,
+  memberMiddleware,
+  ownerMiddleware,
+};
