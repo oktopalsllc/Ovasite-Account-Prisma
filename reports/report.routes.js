@@ -5,7 +5,6 @@ import {
   getReport,
   getReports,
   getReportsByEmployee,
-  getSubmissionReports,
   updateReport,
 } from "./report.controller.js";
 
@@ -23,10 +22,6 @@ reportRouter.get("/:orgId/reports/:projectId", getReports);
 reportRouter.get(
   "/:orgId/userreports/:employeeId/:projectId",
   getReportsByEmployee
-);
-reportRouter.get(
-  "/:orgId/reports/submission/:submissionId",
-  getSubmissionReports
 );
 reportRouter.patch("/:orgId/report/update/:reportId", updateReport);
 reportRouter.delete("/:orgId/report/delete/:reportId", deleteReport);

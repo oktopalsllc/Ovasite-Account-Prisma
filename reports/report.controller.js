@@ -20,17 +20,14 @@ const createReport = asyncHandler(async(req, res, next) => {
             title, 
             reportData, 
             creatorId, 
-            formId, 
-            submissionId, 
             projectId 
         } = req.body;
         const newReport = await prisma.report.create({
             data: {
                 title,
                 reportData,
+                orgId,
                 creatorId,
-                formId,
-                submissionId,
                 projectId
             },
         });
@@ -120,27 +117,6 @@ const getReportsByEmployee = asyncHandler(async(req, res, next) => {
     }
 });
 
-// Get reports related to a submission
-const getSubmissionReports = asyncHandler(async(req, res, next) => {
-    try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const submissionId  = req.params.submissionId;
-        const reports = await prisma.report.findMany({
-            where: {
-                submissionId: submissionId
-            },
-        });        
-        if(reports.length === 0) throw new NotFoundError('No reports found');
-        res.json(reports);
-    } 
-    catch (err) {
-        next(err);
-    }
-});
-
 // Update a report
 const updateReport = asyncHandler(async(req, res, next) => {
     try {
@@ -226,7 +202,6 @@ export {
     getReport,
     getReports,
     getReportsByEmployee,
-    getSubmissionReports,
     updateReport,
     deleteReport
 };

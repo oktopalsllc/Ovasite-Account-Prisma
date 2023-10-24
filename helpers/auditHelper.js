@@ -13,13 +13,13 @@ export async function createAuditLog(
     return await prisma.audit.create({
         data: {
             userMail,
-            userIpAddress,
+            ipAddress,
             orgId,
             type,
             tableName,
             oldValues,
             newValues,
-            primaryKey
+            rowId
         }
     });
 };
