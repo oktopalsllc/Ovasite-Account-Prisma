@@ -16,6 +16,10 @@ model User {
   source             Source    @default(OTHER)
   passwordResetToken String?
   passwordResetAt    DateTime?
+  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?   @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
 
   employees     Employee[]
   organizations Organization[]
@@ -137,8 +141,9 @@ model EmployeeProjectAssociation {
 model Form {
   id             String       @id @default(uuid())
   title          String
-  formData       String
-  description    String
+  formData       String       @default("[]")
+  description    String       @default("")
+  published      Boolean      @default(false)
   creatorId      String
   organizationId String
   projectId      String
@@ -154,14 +159,14 @@ model Form {
 }
 
 model Submission {
-  id             String  @id @default(uuid())
+  id             String       @id @default(uuid())
   title          String
   description    String
   submissionData String
   geolocation    String?
 
   creatorId      String
-  employee       Employee @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  employee       Employee     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   organizationId String
   formId         String
   projectId      String
