@@ -15,7 +15,8 @@ import {
   formRouter,
   submissionRouter,
   reportRouter,
-  auditRouter
+  auditRouter,
+  subscriptionRouter
 } from "./localImport.js";
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.use(`${basePath}/orgs`, formRouter);
 app.use(`${basePath}/orgs`, submissionRouter);
 app.use(`${basePath}/orgs`, reportRouter);
 app.use(`${basePath}/orgs`, auditRouter);
+app.use(`${basePath}/orgs`, subscriptionRouter);
 
 //Connect to the database before listening
 const PORT = process.env.PORT || process.env.API_PORT;

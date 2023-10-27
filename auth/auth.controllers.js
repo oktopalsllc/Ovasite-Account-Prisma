@@ -4,6 +4,7 @@ import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
 import generateResetToken from "../services/generateResetToken.js";
 import sendMail from "../services/sendMail.js";
+import { addNewCustomer } from '../helpers/stripe.js';
 
 const prisma = new PrismaClient();
 
@@ -25,6 +26,16 @@ const registerUser = asyncHandler(async (req, res) => {
 
       await prisma.user.create({
         data: { email: lowercaseEmail, password: hashedPassword, role },
+      });
+
+      const stripeCustomer = await addNewCustomer(lowercaseEmail);
+      await prisma.user.update({
+        where: {
+          email: lowercaseEmail,
+        },
+        data:{
+          stripeCustomerId: stripeCustomer.id
+        }
       });
 
       return res.status(201).json({ message: "User registered successfully" });
