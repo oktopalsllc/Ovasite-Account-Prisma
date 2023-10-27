@@ -28,6 +28,29 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+model Subscription {
+  id                  String       @id @default(cuid())
+  name                String       @unique
+  slug                String
+  numberOfOrgs        String
+  numberOfEmployees   String
+  numberOfProjects    String
+  numberOfForms       String
+  numberOfSubmissions String
+  offlineSubmission   Boolean       @default(true)
+  price               Price?
+}
+
+model Price {
+  id              String       @id @default(cuid())
+  amount          Int
+  testId          String?
+  productionId    String?
+  subscriptionId  String @unique
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+
 model Organization {
   id          String       @id @default(cuid())
   name        String       @unique
