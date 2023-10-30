@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import asyncHandler from "express-async-handler";
 import { 
-    ForbiddenError, 
     NotFoundError
 } from '../middleware/errors.js';
 import { createAuditLog } from '../helpers/auditHelper.js';
@@ -13,9 +12,6 @@ const prisma = new PrismaClient();
 const createReport = asyncHandler(async(req, res, next) => {
     try {
         const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not allowed to create a report for this organization');
-        }
         const { 
             title, 
             reportData, 
@@ -55,10 +51,6 @@ const createReport = asyncHandler(async(req, res, next) => {
 // Get a report by its id
 const getReport = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const { id } = req.params.reportId;
         const report = await prisma.report.findUnique({
             where: {
@@ -76,10 +68,6 @@ const getReport = asyncHandler(async(req, res, next) => {
 // Get reports related to a project
 const getReports = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const { projectId } = req.params.projectId;
         const reports = await prisma.report.findMany({
             where: {
@@ -97,10 +85,6 @@ const getReports = asyncHandler(async(req, res, next) => {
 // Get reports by an employee
 const getReportsByEmployee = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const creatorId  = req.params.employeeId;
         const projectId  = req.params.projectId;
         const reports = await prisma.report.findMany({
@@ -120,11 +104,7 @@ const getReportsByEmployee = asyncHandler(async(req, res, next) => {
 // Update a report
 const updateReport = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        const id = req.params.reportId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
+        const {orgId, id} = req.params;
         const { title, reportData } = req.body;
         const oldValues = await prisma.report.findUnique({
             where: {
@@ -137,7 +117,8 @@ const updateReport = asyncHandler(async(req, res, next) => {
             },
             data: {
                 title,
-                reportData
+                reportData,
+                updatedAt: new Date(),
             },
         });        
         if(!updatedReport) throw new NotFoundError('Report found');
@@ -165,11 +146,7 @@ const updateReport = asyncHandler(async(req, res, next) => {
 // Delete a report
 const deleteReport = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        const id = req.params.reportId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
+        const {orgId, id} = req.params;
         const deletedReport = await prisma.report.delete({
             where: {
                 id: id
