@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import asyncHandler from "express-async-handler";
 import { 
-    ForbiddenError, 
     NotFoundError,
     InternalServerError
 } from '../middleware/errors.js';
@@ -14,9 +13,6 @@ const prisma = new PrismaClient();
 const createSubmission = asyncHandler(async(req, res, next) => {
     try{
         const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not allowed to create a submission for this organization');
-        }
         const { 
             title, 
             description, 
@@ -58,10 +54,6 @@ const createSubmission = asyncHandler(async(req, res, next) => {
 // Get submission by its id
 const getSubmission = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const { id } = req.params.submissionId;
         const submission = await prisma.submission.findUnique({
             where: {
@@ -79,10 +71,6 @@ const getSubmission = asyncHandler(async(req, res, next) => {
 // Get submissions by project id
 const getSubmissions = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const { projectId } = req.params.projectId;
         const submissions = await prisma.submission.findMany({
             where: {
@@ -100,10 +88,6 @@ const getSubmissions = asyncHandler(async(req, res, next) => {
 // Get submissions by form id
 const getFormSubmissions = asyncHandler(async(req, res, next) => {
     try{ 
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const { formId } = req.params.formId;
         const submissions = await prisma.submission.findMany({
             where: {
@@ -121,12 +105,7 @@ const getFormSubmissions = asyncHandler(async(req, res, next) => {
 // Get submissions by employee
 const getEmployeeSubmissions = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const creatorId  = req.params.employeeId;
-        const projectId = req.params.projectId;
+        const {orgId, creatorId, projectId} = req.params;
         const submissions = await prisma.submission.findMany({
             where: {
                 creatorId: creatorId,
@@ -145,11 +124,7 @@ const getEmployeeSubmissions = asyncHandler(async(req, res, next) => {
 // Update submission
 const updateSubmission = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const id = req.params.submissionId;
+        const {orgId, id} = req.params;
         const { title, description, submissionData, geolocation } = req.body;
         const oldValues = await prisma.submission.findUnique({
             where: {
@@ -164,7 +139,8 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
                 title,
                 description,
                 submissionData,
-                geolocation
+                geolocation,
+                updatedAt: new Date(),
             },
         });
         if(!updatedSubmission) throw new NotFoundError('Submission not found');
@@ -191,11 +167,7 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
 
 // Export submission data
 const exportSubmission = asyncHandler(async (req, res, next) => {
-    try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
+    try{
         const { submissionId } = req.params.submissionId;
         const submission = await prisma.submission.findUnique({
             where: {
@@ -255,11 +227,7 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
 // Delete submission
 const deleteSubmission = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { id } = req.params.submissionId;
+        const {orgId, id} = req.params;
         const deletedSubmission = await prisma.submission.delete({
             where: {
                 id: id

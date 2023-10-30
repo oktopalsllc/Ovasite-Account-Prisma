@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import asyncHandler from "express-async-handler";
 import { 
-    ForbiddenError, 
     NotFoundError
 } from '../middleware/errors.js';
 import { createAuditLog } from '../helpers/auditHelper.js';
@@ -12,9 +11,6 @@ const prisma = new PrismaClient();
 const createForm = asyncHandler(async(req, res, next) => {
     try{
         const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not allowed to create a form for this organization');
-        }
         const { title, formData, description, creatorId, projectId } = req.body;
         const newForm = await prisma.form.create({
             data: {
@@ -46,12 +42,28 @@ const createForm = asyncHandler(async(req, res, next) => {
 // Gets a form by its id
 const getForm = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const { id } = req.params.formId;
         const form = await prisma.form.findUnique({
+            where: {
+                id: id,
+            },
+        });
+        if(!form) throw new NotFoundError('Form not found');
+        res.json(form);
+    }
+    catch(err){
+        next(err);
+    }
+});
+
+// Get form content(formData) by formId
+const getFormData = asyncHandler(async(req, res, next) => {
+    try{
+        const { id } = req.params.formId;
+        const form = await prisma.form.findUnique({
+            select:{
+                formData: true
+            },
             where: {
                 id: id,
             },
@@ -67,17 +79,12 @@ const getForm = asyncHandler(async(req, res, next) => {
 // Gets forms related to a project
 const getForms = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const { projectId } = req.params.projectId;
         const forms = await prisma.form.findMany({
             where: {
                 projectId: projectId
             },
         });
-        if(forms.length === 0) throw new NotFoundError('No forms for this project found');
         res.json(forms);
     }
     catch(err){
@@ -89,9 +96,6 @@ const getForms = asyncHandler(async(req, res, next) => {
 const getFormsByEmployee = asyncHandler(async(req, res, next) => {
     try{
         const { orgId, creatorId, projectId } = req.params;        
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const forms = await prisma.form.findMany({
             where: {
                 organizationId: orgId,
@@ -99,8 +103,41 @@ const getFormsByEmployee = asyncHandler(async(req, res, next) => {
                 projectId: projectId
             },
         });
-        if(forms.length === 0) throw new NotFoundError('No forms for this project found');
         res.json(forms);
+    }
+    catch(err){
+        next(err);
+    }
+});
+
+// Publish a form
+const publishForm = asyncHandler(async(req, res, next)=>{
+    try{
+        const {orgId, id} = req.params;       
+        const oldValues = await prisma.form.findUnique({
+            where: {
+                id: id,
+            },
+        });
+        const publishedForm = await prisma.form.update({
+            where:{id: formId},
+            data:{
+                published: true,
+                updatedAt: new Date(),
+            },
+        });
+        if(!publishedForm) throw new NotFoundError('Form not found');
+        await createAuditLog(
+            req.user.email, 
+            req.ip || null, 
+            orgId,
+            'publish',
+            'Form',
+            JSON.stringify(oldValues),
+            JSON.stringify(publishedForm),
+            oldValues.id.toString()
+        );
+        res.json(publishedForm);
     }
     catch(err){
         next(err);
@@ -110,11 +147,7 @@ const getFormsByEmployee = asyncHandler(async(req, res, next) => {
 // Updates a form
 const updateForm = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const id = req.params.formId;
+        const {orgId, id} = req.params;
         const { title, formData, description } = req.body;
         const oldValues = await prisma.form.findUnique({
             where: {
@@ -128,7 +161,8 @@ const updateForm = asyncHandler(async(req, res, next) => {
             data: {
                 title,
                 formData,
-                description
+                description,
+                updatedAt: new Date(),
             },
         });
         if(!updatedForm) throw new NotFoundError('Form does not exist'); 
@@ -152,11 +186,7 @@ const updateForm = asyncHandler(async(req, res, next) => {
 // Deletes a form
 const deleteForm = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { id } = req.params.formId;
+        const {orgId, id} = req.params;
         const deletedForm = await prisma.form.delete({
             where: {
                 id: id
@@ -184,8 +214,10 @@ const deleteForm = asyncHandler(async(req, res, next) => {
 export{
     createForm,
     getForm,
+    getFormData,
     getForms,
     getFormsByEmployee,
+    publishForm,
     updateForm,
     deleteForm
 };

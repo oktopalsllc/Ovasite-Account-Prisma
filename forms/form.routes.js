@@ -5,8 +5,10 @@ import {
   createForm,
   deleteForm,
   getForm,
+  getFormData,
   getForms,
   getFormsByEmployee,
+  publishForm,
   updateForm,
 } from "./form.controller.js";
 
@@ -17,8 +19,10 @@ formRouter.use("/:orgId", checkOrganizationExists);
 
 formRouter.post("/:orgId/form/create", createForm);
 formRouter.get("/:orgId/form/:formId", getForm);
+formRouter.get("/:orgId/form/data/:formId", getFormData);
 formRouter.get("/:orgId/forms/:projectId", getForms);
 formRouter.get("/:orgId/userforms/:creatorId/:projectId", getFormsByEmployee);
+formRouter.patch("/:orgId/form/publish/:projectId", publishForm);
 formRouter.patch("/:orgId/form/update/:formId", updateForm);
 formRouter.delete("/:orgId/form/delete/:formId", deleteForm);
 
