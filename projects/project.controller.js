@@ -29,7 +29,7 @@ const createProject = asyncHandler(async (req, res, next) => {
                 status,
                 startDate,
                 endDate,
-                orgId
+                organizationId: orgId
             },
         });        
         await createAuditLog(
