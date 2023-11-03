@@ -22,7 +22,6 @@ import express from "express";
 
 const projectRouter = express.Router({ mergeParams: true });
 
-projectRouter.use('/:orgId', verifyUser);
 projectRouter.use('/:orgId', checkOrganizationExists);
 
 projectRouter.post('/:orgId/project/create', createProject);
