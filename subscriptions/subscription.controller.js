@@ -46,7 +46,7 @@ const createSubscription = asyncHandler(async (req, res, next) => {
             JSON.stringify(newSubscription),
             newSubscription.id.toString()
         );
-        res.json({ message: 'Subscription created successfully', status: true, newSubscription });
+        res.status(201).json({ message: 'Subscription created successfully', status: true, newSubscription });
     }
     catch (err) {
         next(err);
@@ -59,7 +59,7 @@ const getUserSubscription = asyncHandler(async (req, res, next) => {
         const userId = req.params.userId;
         const plan = await getUserSubscriptionPlan(userId);
         if (!plan) throw new NotFoundError('Plan not found');
-        res.json(plan);
+        res.status(201).json(plan);
     }
     catch (err) {
         next(err);
@@ -73,7 +73,7 @@ const getSubscriptions = asyncHandler(async (req, res, next) => {
             include: { price: true },
         });
 
-        res.json(subscriptions);
+        res.status(201).json(subscriptions);
     }
     catch (err) {
         next(err);
@@ -123,7 +123,7 @@ const updateSubscription = asyncHandler(async (req, res, next) => {
             JSON.stringify(updatedSubscription),
             oldValues.id.toString()
         );
-        res.json({ message: 'Subscription updated successfully', status: true, updatedSubscription });
+        res.status(201).json({ message: 'Subscription updated successfully', status: true, updatedSubscription });
     }
     catch (err) {
         next(err);
@@ -150,7 +150,7 @@ const deleteSubscription = asyncHandler(async (req, res, next) => {
             JSON.stringify(deletedSubscription),
             deletedSubscription.id.toString()
         );
-        res.json({ message: 'Subscription deleted successfully', status: true, deletedSubscription });
+        res.status(201).json({ message: 'Subscription deleted successfully', status: true, deletedSubscription });
     }
     catch (err) {
         next(err);
@@ -187,7 +187,7 @@ const createPrice = asyncHandler(async (req, res, next) => {
             JSON.stringify(newPrice),
             newPrice.id.toString()
         );
-        res.json({ message: 'Price created successfully', status: true, newPrice });
+        res.status(201).json({ message: 'Price created successfully', status: true, newPrice });
     }
     catch (err) {
         next(err);
@@ -198,7 +198,7 @@ const createPrice = asyncHandler(async (req, res, next) => {
 const getPrices = asyncHandler(async (req, res, next) => {
     try {
         const prices = await prisma.price.findMany();
-        res.json(prices);
+        res.status(201).json(prices);
     }
     catch (err) {
         next(err);
@@ -242,7 +242,7 @@ const updatePrice = asyncHandler(async (req, res, next) => {
             JSON.stringify(updatedPrice),
             oldPrice.id.toString()
         );
-        res.json({ message: 'Price updated successfully', status: true, updatedPrice });
+        res.status(201).json({ message: 'Price updated successfully', status: true, updatedPrice });
     }
     catch (err) {
         next(err);

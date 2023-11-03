@@ -44,7 +44,7 @@ const createSubmission = asyncHandler(async(req, res, next) => {
             JSON.stringify(newSubmission),
             newSubmission.id.toString()
         );
-        res.json({message: 'Submission created successfully', status: true, newSubmission});
+        res.status(201).json({message: 'Submission created successfully', status: true, newSubmission});
     }
     catch(err){
         next(err);
@@ -61,7 +61,7 @@ const getSubmission = asyncHandler(async(req, res, next) => {
             },
         });
         if(!submission) throw new NotFoundError('Submission not found');
-        res.json(submission);
+        res.status(201).json(submission);
     }
     catch(err){
         next(err);
@@ -95,7 +95,7 @@ const getFormSubmissions = asyncHandler(async(req, res, next) => {
             },
         });
         if(submissions.length === 0) throw new NotFoundError('No submissions found for this form');
-        res.json(submissions);
+        res.status(201).json(submissions);
     }
     catch(err){
         next(err);
@@ -114,7 +114,7 @@ const getEmployeeSubmissions = asyncHandler(async(req, res, next) => {
             },
         });
         if(submissions.length === 0) throw new NotFoundError('No submissions found for this form');
-        res.json(submissions);
+        res.status(201).json(submissions);
     }
     catch(err){
         next(err);
@@ -154,7 +154,7 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
             JSON.stringify(updatedSubmission),
             updatedSubmission.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Submission updated successfully',
             status:true,
             updatedSubmission
@@ -244,7 +244,7 @@ const deleteSubmission = asyncHandler(async(req, res, next) => {
             '',
             deletedSubmission.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Submission deleted successfully',
             status: true,
             deletedSubmission
