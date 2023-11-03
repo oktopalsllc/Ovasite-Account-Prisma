@@ -29,7 +29,7 @@ const createSubmission = asyncHandler(async(req, res, next) => {
                 submissionData,
                 geolocation,
                 creatorId,
-                orgId,
+                organizationId: orgId,
                 formId,
                 projectId
             },
