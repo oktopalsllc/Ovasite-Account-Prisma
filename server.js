@@ -26,7 +26,13 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://ovasite.vercel.app"],
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
+    credentials: true
+  })
+);
 // app.use(csurf({ cookie: true }));
 // app.use(helmet());
 
