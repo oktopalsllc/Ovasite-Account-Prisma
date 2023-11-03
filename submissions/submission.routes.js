@@ -15,7 +15,6 @@ import { checkOrganizationExists } from "../organizations/organizations.middlewa
 
 const submissionRouter = express.Router({ mergeParams: true });
 
-submissionRouter.use("/:orgId", verifyUser);
 submissionRouter.use("/:orgId", checkOrganizationExists);
 
 submissionRouter.post("/:orgId/submission/create", createSubmission);
