@@ -93,10 +93,10 @@ const addEmployee = asyncHandler(async (req, res, next) => {
 // Gets a project created by an organization by its id
 const getOrgProject = asyncHandler(async (req, res, next) => {
     try{
-        const { orgId, id } = req.params;
+        const { orgId, projectId } = req.params;
         const project = await prisma.project.findUnique({
             where: {
-                id: id,
+                id: projectId,
                 organizationId: orgId
             },
         });
@@ -117,8 +117,7 @@ const getOrgProjects = asyncHandler(async (req, res) => {
                 organizationId: orgId
             },
         });
-        if(projects.length === 0) throw new NotFoundError('No projects found');
-        res.json(projects);
+        res.status(201).json(projects);
     }
     catch(err){
         next(err);
@@ -128,16 +127,15 @@ const getOrgProjects = asyncHandler(async (req, res) => {
 // Gets list of projects associated with an employee
 const getEmployeeProjects = asyncHandler(async (req, res, next) => {
     try{
-        const { employeeId } = req.params.empId;
+        const { empId } = req.params;
         const projects = await prisma.employeeProjectAssociation.findMany({
             where: {
-                employeeId: employeeId
+                employeeId: empId
             },
             include: {
                 project: true,
             },
         });
-        if(projects.length === 0) throw new NotFoundError('No projects found');
         res.status(201).json(projects);
     }
     catch(err){
@@ -148,7 +146,7 @@ const getEmployeeProjects = asyncHandler(async (req, res, next) => {
 // Gets a list of employees associated with an project
 const getProjectEmployees = asyncHandler(async (req, res, next) => {
     try{
-        const { projectId } = req.params.projectId;
+        const { projectId } = req.params;
         const employees = await prisma.employeeProjectAssociation.findMany({
             where: {
                 projectId: projectId
@@ -157,7 +155,6 @@ const getProjectEmployees = asyncHandler(async (req, res, next) => {
                 employee: true,
             },
         });
-        if(employees.length === 0) throw new NotFoundError('No employees found');
         res.status(201).json(employees);
     }
     catch(err){
@@ -208,10 +205,10 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
 // Remove an employee from a project
 const removeEmployee = asyncHandler(async (req, res, next) => {
     try{
-        const {orgId, employeeId, projectId} = req.params;
+        const {orgId, empId, projectId} = req.params;
         const deletedAssociation = await prisma.employeeProjectAssociation.delete({
             where: {
-                employeeId: employeeId,
+                employeeId: empId,
                 projectId: projectId
             },
         });
@@ -291,10 +288,10 @@ const updateProject = asyncHandler(async (req, res, next) => {
 // Exports a project data in json format
 const exportProject = asyncHandler(async (req, res, next) => {
     try{
-        const { id } = req.params.projectId;
+        const { projectId } = req.params;
         const project = await prisma.project.findUnique({
             where: {
-                id: id
+                id: projectId
             },
         });
         if(!project) throw new NotFoundError('Project not found');
@@ -344,10 +341,10 @@ const exportProject = asyncHandler(async (req, res, next) => {
 // Delete a project
 const deleteProject = asyncHandler(async (req, res, next) => {
     try{
-        const {orgId, id} = req.params;
+        const {orgId, projectId} = req.params;
         const deletedProject = await prisma.project.delete({
             where: {
-                id: id
+                id: projectId
             },
         });
         if(!deletedProject) throw new NotFoundError('Project not found');

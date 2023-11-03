@@ -51,10 +51,10 @@ const createReport = asyncHandler(async(req, res, next) => {
 // Get a report by its id
 const getReport = asyncHandler(async(req, res, next) => {
     try {
-        const { id } = req.params.reportId;
+        const { reportId } = req.params;
         const report = await prisma.report.findUnique({
             where: {
-                id: id
+                id: reportId
             },
         });
         if(!report) throw new NotFoundError('Report found');
@@ -68,13 +68,12 @@ const getReport = asyncHandler(async(req, res, next) => {
 // Get reports related to a project
 const getReports = asyncHandler(async(req, res, next) => {
     try {
-        const { projectId } = req.params.projectId;
+        const { projectId } = req.params;
         const reports = await prisma.report.findMany({
             where: {
                 projectId: projectId
             },
         });
-        if(reports.length === 0) throw new NotFoundError('No reports found');
         res.status(201).json(reports);
     } 
     catch (err) {
@@ -85,15 +84,13 @@ const getReports = asyncHandler(async(req, res, next) => {
 // Get reports by an employee
 const getReportsByEmployee = asyncHandler(async(req, res, next) => {
     try {
-        const creatorId  = req.params.employeeId;
-        const projectId  = req.params.projectId;
+        const {employeeId, projectId}  = req.params;
         const reports = await prisma.report.findMany({
             where: {
-                creatorId: creatorId,
+                creatorId: employeeId,
                 projectId: projectId
             },
         });
-        if(reports.length === 0) throw new NotFoundError('No reports found');
         res.status(201).json(reports);
     } 
     catch (err) {
@@ -104,16 +101,16 @@ const getReportsByEmployee = asyncHandler(async(req, res, next) => {
 // Update a report
 const updateReport = asyncHandler(async(req, res, next) => {
     try {
-        const {orgId, id} = req.params;
+        const {orgId, reportId} = req.params;
         const { title, reportData } = req.body;
         const oldValues = await prisma.report.findUnique({
             where: {
-                id: id,
+                id: reportId,
             },
         });
         const updatedReport = await prisma.report.update({
             where: {
-                id: id
+                id: reportId
             },
             data: {
                 title,
@@ -146,10 +143,10 @@ const updateReport = asyncHandler(async(req, res, next) => {
 // Delete a report
 const deleteReport = asyncHandler(async(req, res, next) => {
     try {
-        const {orgId, id} = req.params;
+        const {orgId, reportId} = req.params;
         const deletedReport = await prisma.report.delete({
             where: {
-                id: id
+                id: reportId
             },
         });
         if(!deletedReport) throw new NotFoundError('Report found');
