@@ -42,10 +42,10 @@ const createForm = asyncHandler(async (req, res, next) => {
 // Gets a form by its id
 const getForm = asyncHandler(async (req, res, next) => {
     try {
-        const { id } = req.params.formId;
+        const { formId } = req.params;
         const form = await prisma.form.findUnique({
             where: {
-                id: id,
+                id: formId,
             },
         });
         if (!form) throw new NotFoundError('Form not found');
@@ -59,13 +59,13 @@ const getForm = asyncHandler(async (req, res, next) => {
 // Get form content(formData) by formId
 const getFormData = asyncHandler(async (req, res, next) => {
     try {
-        const { id } = req.params.formId;
+        const { formId } = req.params;
         const form = await prisma.form.findUnique({
             select: {
                 formData: true
             },
             where: {
-                id: id,
+                id: formId,
             },
         });
         if (!form) throw new NotFoundError('Form not found');
@@ -79,13 +79,13 @@ const getFormData = asyncHandler(async (req, res, next) => {
 // Gets form with its submissions
 const getFormWithSubmissions = asyncHandler(async (req, res, next) => {
     try {
-        const { id } = req.params.formId;
+        const { formId } = req.params;
         const form = await prisma.form.findUnique({
             include: {
                 submissions: true
             },
             where: {
-                id: id,
+                id: formId,
             },
         });
         if (!form) throw new NotFoundError('Form not found');
@@ -99,7 +99,7 @@ const getFormWithSubmissions = asyncHandler(async (req, res, next) => {
 // Gets forms related to a project
 const getForms = asyncHandler(async (req, res, next) => {
     try {
-        const { projectId } = req.params.projectId;
+        const { projectId } = req.params;
         const forms = await prisma.form.findMany({
             where: {
                 projectId: projectId
@@ -167,16 +167,16 @@ const publishForm = asyncHandler(async (req, res, next) => {
 // Updates a form
 const updateForm = asyncHandler(async (req, res, next) => {
     try {
-        const { orgId, id } = req.params;
+        const { orgId, formId } = req.params;
         const { title, formData, description } = req.body;
         const oldValues = await prisma.form.findUnique({
             where: {
-                id: id,
+                id: formId,
             },
         });
         const updatedForm = await prisma.form.update({
             where: {
-                id: id
+                id: formId
             },
             data: {
                 title,
@@ -206,10 +206,10 @@ const updateForm = asyncHandler(async (req, res, next) => {
 // Deletes a form
 const deleteForm = asyncHandler(async (req, res, next) => {
     try {
-        const { orgId, id } = req.params;
+        const { orgId, formId } = req.params;
         const deletedForm = await prisma.form.delete({
             where: {
-                id: id
+                id: formId
             },
         });
         if (!deletedForm) throw new NotFoundError('Form does not exist');

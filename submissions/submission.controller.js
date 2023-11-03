@@ -71,7 +71,7 @@ const getSubmission = asyncHandler(async(req, res, next) => {
 // Get submissions by project id
 const getSubmissions = asyncHandler(async(req, res, next) => {
     try{
-        const { projectId } = req.params.projectId;
+        const { projectId } = req.params;
         const submissions = await prisma.submission.findMany({
             where: {
                 projectId: projectId
@@ -87,7 +87,7 @@ const getSubmissions = asyncHandler(async(req, res, next) => {
 // Get submissions by form id
 const getFormSubmissions = asyncHandler(async(req, res, next) => {
     try{ 
-        const { formId } = req.params.formId;
+        const { formId } = req.params;
         const submissions = await prisma.submission.findMany({
             where: {
                 formId: formId
@@ -103,10 +103,10 @@ const getFormSubmissions = asyncHandler(async(req, res, next) => {
 // Get submissions by employee
 const getEmployeeSubmissions = asyncHandler(async(req, res, next) => {
     try{
-        const {orgId, creatorId, projectId} = req.params;
+        const {orgId, employeeId, projectId} = req.params;
         const submissions = await prisma.submission.findMany({
             where: {
-                creatorId: creatorId,
+                creatorId: employeeId,
                 organizationId: orgId,
                 projectId: projectId
             },
@@ -121,11 +121,11 @@ const getEmployeeSubmissions = asyncHandler(async(req, res, next) => {
 // Update submission
 const updateSubmission = asyncHandler(async(req, res, next) => {
     try{
-        const {orgId, id} = req.params;
+        const {orgId, submissionId} = req.params;
         const { title, description, submissionData, geolocation } = req.body;
         const oldValues = await prisma.submission.findUnique({
             where: {
-                id: id,
+                id: submissionId,
             },
         });
         const updatedSubmission = await prisma.submission.update({
@@ -165,7 +165,7 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
 // Export submission data
 const exportSubmission = asyncHandler(async (req, res, next) => {
     try{
-        const { submissionId } = req.params.submissionId;
+        const { submissionId } = req.params;
         const submission = await prisma.submission.findUnique({
             where: {
                 id: submissionId
@@ -224,10 +224,10 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
 // Delete submission
 const deleteSubmission = asyncHandler(async(req, res, next) => {
     try{
-        const {orgId, id} = req.params;
+        const {orgId, submissionId} = req.params;
         const deletedSubmission = await prisma.submission.delete({
             where: {
-                id: id
+                id: submissionId
             },
         });
         if(!deletedSubmission) throw new NotFoundError('Submission not found');
