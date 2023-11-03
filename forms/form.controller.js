@@ -32,7 +32,7 @@ const createForm = asyncHandler(async (req, res, next) => {
             JSON.stringify(newForm),
             newForm.id.toString()
         );
-        res.json({ message: 'Form created successfully', status: true, newForm });
+        res.status(201).json({ message: 'Form created successfully', status: true, newForm });
     }
     catch (err) {
         next(err);
@@ -49,7 +49,7 @@ const getForm = asyncHandler(async (req, res, next) => {
             },
         });
         if (!form) throw new NotFoundError('Form not found');
-        res.json(form);
+        res.status(201).json(form);
     }
     catch (err) {
         next(err);
@@ -69,7 +69,7 @@ const getFormData = asyncHandler(async (req, res, next) => {
             },
         });
         if (!form) throw new NotFoundError('Form not found');
-        res.json(form);
+        res.status(201).json(form);
     }
     catch (err) {
         next(err);
@@ -105,7 +105,7 @@ const getForms = asyncHandler(async (req, res, next) => {
                 projectId: projectId
             },
         });
-        res.json(forms);
+        res.status(201).json(forms);
     }
     catch (err) {
         next(err);
@@ -123,7 +123,7 @@ const getFormsByEmployee = asyncHandler(async (req, res, next) => {
                 projectId: projectId
             },
         });
-        res.json(forms);
+        res.status(201).json(forms);
     }
     catch (err) {
         next(err);
@@ -157,7 +157,7 @@ const publishForm = asyncHandler(async (req, res, next) => {
             JSON.stringify(publishedForm),
             oldValues.id.toString()
         );
-        res.json(publishedForm);
+        res.status(201).json(publishedForm);
     }
     catch (err) {
         next(err);
@@ -196,7 +196,7 @@ const updateForm = asyncHandler(async (req, res, next) => {
             JSON.stringify(updateForm),
             oldValues.id.toString()
         );
-        res.json({ message: 'Form updated successfully', status: true, updatedForm });
+        res.status(201).json({ message: 'Form updated successfully', status: true, updatedForm });
     }
     catch (err) {
         next(err);
@@ -223,7 +223,7 @@ const deleteForm = asyncHandler(async (req, res, next) => {
             '',
             deletedForm.id.toString()
         );
-        res.json({ message: 'Form deleted successfully', status: true, deletedForm });
+        res.status(201).json({ message: 'Form deleted successfully', status: true, deletedForm });
     }
     catch (err) {
         next(err);

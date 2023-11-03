@@ -42,7 +42,7 @@ const createProject = asyncHandler(async (req, res, next) => {
             JSON.stringify(newProject),
             newProject.id.toString()
         );
-        res.json({message: 'Project created successfully', status: true, newProject});
+        res.status(201).json({message: 'Project created successfully', status: true, newProject});
     }
     catch(err){
         next(err);
@@ -83,7 +83,7 @@ const addEmployee = asyncHandler(async (req, res, next) => {
             JSON.stringify(newAssociation),
             newAssociation.id.toString()
         );
-        res.json({message: 'Employee added successfully', status: true, newAssociation});
+        res.status(201).json({message: 'Employee added successfully', status: true, newAssociation});
     }
     catch(err){
         next(err);
@@ -101,7 +101,7 @@ const getOrgProject = asyncHandler(async (req, res, next) => {
             },
         });
         if(!project) throw new NotFoundError('Project not found');
-        res.json(project);
+        res.status(201).json(project);
     }
     catch(err){
         next(err);
@@ -138,7 +138,7 @@ const getEmployeeProjects = asyncHandler(async (req, res, next) => {
             },
         });
         if(projects.length === 0) throw new NotFoundError('No projects found');
-        res.json(projects);
+        res.status(201).json(projects);
     }
     catch(err){
         next(err);
@@ -158,7 +158,7 @@ const getProjectEmployees = asyncHandler(async (req, res, next) => {
             },
         });
         if(employees.length === 0) throw new NotFoundError('No employees found');
-        res.json(employees);
+        res.status(201).json(employees);
     }
     catch(err){
         next(err);
@@ -198,7 +198,7 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
             JSON.stringify(updatedRole),
             oldValues.id.toString()
         );
-        res.json({message: 'Role updated successfully', status: true, updatedRole});
+        res.status(201).json({message: 'Role updated successfully', status: true, updatedRole});
     }
     catch(err) {
         next(err);
@@ -226,7 +226,7 @@ const removeEmployee = asyncHandler(async (req, res, next) => {
             '',
             deletedAssociation.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Employee removed from project successfully', 
             status: true, 
             deletedAssociation
@@ -281,7 +281,7 @@ const updateProject = asyncHandler(async (req, res, next) => {
             JSON.stringify(updatedProject),
             oldValues.id.toString()
         );
-        res.json({message: 'Project updated successfully', status: true, updatedProject});
+        res.status(201).json({message: 'Project updated successfully', status: true, updatedProject});
     }
     catch (err) {
         next(err);
@@ -361,7 +361,7 @@ const deleteProject = asyncHandler(async (req, res, next) => {
             '',
             deletedProject.id.toString()
         );
-        res.json({message: 'Project deleted', status: true, deletedProject});
+        res.status(201).json({message: 'Project deleted', status: true, deletedProject});
     }
     catch (err) {
         next(err);

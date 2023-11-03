@@ -37,7 +37,7 @@ const createReport = asyncHandler(async(req, res, next) => {
             JSON.stringify(newReport),
             newReport.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Report created successfully',
             status: true,
             newReport
@@ -58,7 +58,7 @@ const getReport = asyncHandler(async(req, res, next) => {
             },
         });
         if(!report) throw new NotFoundError('Report found');
-        res.json(report);
+        res.status(201).json(report);
     } 
     catch (err) {
         next(err);
@@ -75,7 +75,7 @@ const getReports = asyncHandler(async(req, res, next) => {
             },
         });
         if(reports.length === 0) throw new NotFoundError('No reports found');
-        res.json(reports);
+        res.status(201).json(reports);
     } 
     catch (err) {
         next(err);
@@ -94,7 +94,7 @@ const getReportsByEmployee = asyncHandler(async(req, res, next) => {
             },
         });
         if(reports.length === 0) throw new NotFoundError('No reports found');
-        res.json(reports);
+        res.status(201).json(reports);
     } 
     catch (err) {
         next(err);    
@@ -132,7 +132,7 @@ const updateReport = asyncHandler(async(req, res, next) => {
             JSON.stringify(updatedReport),
             oldValues.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Report updated successfully',
             status: true,
             updatedReport
@@ -163,7 +163,7 @@ const deleteReport = asyncHandler(async(req, res, next) => {
             '',
             deletedReport.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Report deleted successfully',
             status: true,
             deletedReport
