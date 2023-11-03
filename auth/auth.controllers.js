@@ -105,6 +105,17 @@ const loginUser = asyncHandler(async (req, res) => {
       return res.status(401).json("Wrong password or email!");
     }
 
+    const userInfo = {      
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      stripeCustomerId: user.stripeCustomerId,
+      stripeSubscriptionId: user.stripeSubscriptionId,
+      stripePriceId: user.stripePriceId,
+      stripeCurrentPeriodEnd: user.stripeCurrentPeriodEnd,
+      createdAt: user.createdAt
+    }
+
     // include user information
     const tokenPayload = {
       id: user.id,
@@ -120,7 +131,7 @@ const loginUser = asyncHandler(async (req, res) => {
         httpOnly: true,
       })
       .status(200)
-      .json({ access_token: token });
+      .json({ access_token: token, userInfo: userInfo});
   } catch (error) {
     console.error({ error: "An error occurred while logging in" });
   }

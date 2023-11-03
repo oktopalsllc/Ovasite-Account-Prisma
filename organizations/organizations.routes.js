@@ -14,7 +14,7 @@ organizationsRouter.use("/", verifyToken);
 
 organizationsRouter.post("/", createOrganization);
 organizationsRouter.get("/", getAllOrganizations);
-organizationsRouter.get("/organization-owners", getOrganizationOwners);
+organizationsRouter.get("/org-owners", getOrganizationOwners);
 organizationsRouter.get("/:id", getOrganizationById);
 organizationsRouter.patch("/:id", updateOrganization);
 organizationsRouter.delete("/:id", deleteOrganization);
