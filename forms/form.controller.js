@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import asyncHandler from "express-async-handler";
-import { 
+import {
     NotFoundError
 } from '../middleware/errors.js';
 import { createAuditLog } from '../helpers/auditHelper.js';
@@ -8,8 +8,8 @@ import { createAuditLog } from '../helpers/auditHelper.js';
 const prisma = new PrismaClient();
 
 // Creates a form
-const createForm = asyncHandler(async(req, res, next) => {
-    try{
+const createForm = asyncHandler(async (req, res, next) => {
+    try {
         const orgId = req.params.orgId;
         const { title, formData, description, creatorId, projectId } = req.body;
         const newForm = await prisma.form.create({
@@ -23,8 +23,8 @@ const createForm = asyncHandler(async(req, res, next) => {
             },
         });
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.user.email,
+            req.ip || null,
             orgId,
             'create',
             'Form',
@@ -32,53 +32,73 @@ const createForm = asyncHandler(async(req, res, next) => {
             JSON.stringify(newForm),
             newForm.id.toString()
         );
-        res.json({message:'Form created successfully', status: true, newForm});
+        res.json({ message: 'Form created successfully', status: true, newForm });
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Gets a form by its id
-const getForm = asyncHandler(async(req, res, next) => {
-    try{
+const getForm = asyncHandler(async (req, res, next) => {
+    try {
         const { id } = req.params.formId;
         const form = await prisma.form.findUnique({
             where: {
                 id: id,
             },
         });
-        if(!form) throw new NotFoundError('Form not found');
+        if (!form) throw new NotFoundError('Form not found');
         res.json(form);
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Get form content(formData) by formId
-const getFormData = asyncHandler(async(req, res, next) => {
-    try{
+const getFormData = asyncHandler(async (req, res, next) => {
+    try {
         const { id } = req.params.formId;
         const form = await prisma.form.findUnique({
-            select:{
+            select: {
                 formData: true
             },
             where: {
                 id: id,
             },
         });
-        if(!form) throw new NotFoundError('Form not found');
+        if (!form) throw new NotFoundError('Form not found');
         res.json(form);
     }
-    catch(err){
+    catch (err) {
+        next(err);
+    }
+});
+
+// Gets form with its submissions
+const getFormWithSubmissions = asyncHandler(async (req, res, next) => {
+    try {
+        const { id } = req.params.formId;
+        const form = await prisma.form.findUnique({
+            include: {
+                submissions: true
+            },
+            where: {
+                id: id,
+            },
+        });
+        if (!form) throw new NotFoundError('Form not found');
+        res.json(form);
+    }
+    catch (err) {
         next(err);
     }
 });
 
 // Gets forms related to a project
-const getForms = asyncHandler(async(req, res, next) => {
-    try{
+const getForms = asyncHandler(async (req, res, next) => {
+    try {
         const { projectId } = req.params.projectId;
         const forms = await prisma.form.findMany({
             where: {
@@ -87,15 +107,15 @@ const getForms = asyncHandler(async(req, res, next) => {
         });
         res.json(forms);
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Gets forms by an employee
-const getFormsByEmployee = asyncHandler(async(req, res, next) => {
-    try{
-        const { orgId, creatorId, projectId } = req.params;        
+const getFormsByEmployee = asyncHandler(async (req, res, next) => {
+    try {
+        const { orgId, creatorId, projectId } = req.params;
         const forms = await prisma.form.findMany({
             where: {
                 organizationId: orgId,
@@ -105,31 +125,31 @@ const getFormsByEmployee = asyncHandler(async(req, res, next) => {
         });
         res.json(forms);
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Publish a form
-const publishForm = asyncHandler(async(req, res, next)=>{
-    try{
-        const {orgId, id} = req.params;       
+const publishForm = asyncHandler(async (req, res, next) => {
+    try {
+        const { orgId, id } = req.params;
         const oldValues = await prisma.form.findUnique({
             where: {
                 id: id,
             },
         });
         const publishedForm = await prisma.form.update({
-            where:{id: formId},
-            data:{
+            where: { id: formId },
+            data: {
                 published: true,
                 updatedAt: new Date(),
             },
         });
-        if(!publishedForm) throw new NotFoundError('Form not found');
+        if (!publishedForm) throw new NotFoundError('Form not found');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.user.email,
+            req.ip || null,
             orgId,
             'publish',
             'Form',
@@ -139,15 +159,15 @@ const publishForm = asyncHandler(async(req, res, next)=>{
         );
         res.json(publishedForm);
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Updates a form
-const updateForm = asyncHandler(async(req, res, next) => {
-    try{
-        const {orgId, id} = req.params;
+const updateForm = asyncHandler(async (req, res, next) => {
+    try {
+        const { orgId, id } = req.params;
         const { title, formData, description } = req.body;
         const oldValues = await prisma.form.findUnique({
             where: {
@@ -165,10 +185,10 @@ const updateForm = asyncHandler(async(req, res, next) => {
                 updatedAt: new Date(),
             },
         });
-        if(!updatedForm) throw new NotFoundError('Form does not exist'); 
+        if (!updatedForm) throw new NotFoundError('Form does not exist');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.user.email,
+            req.ip || null,
             orgId,
             'update',
             'Form',
@@ -176,26 +196,26 @@ const updateForm = asyncHandler(async(req, res, next) => {
             JSON.stringify(updateForm),
             oldValues.id.toString()
         );
-        res.json({message: 'Form updated successfully', status: true, updatedForm});
+        res.json({ message: 'Form updated successfully', status: true, updatedForm });
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Deletes a form
-const deleteForm = asyncHandler(async(req, res, next) => {
-    try{
-        const {orgId, id} = req.params;
+const deleteForm = asyncHandler(async (req, res, next) => {
+    try {
+        const { orgId, id } = req.params;
         const deletedForm = await prisma.form.delete({
             where: {
                 id: id
             },
         });
-        if(!deletedForm) throw new NotFoundError('Form does not exist');
+        if (!deletedForm) throw new NotFoundError('Form does not exist');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.user.email,
+            req.ip || null,
             orgId,
             'delete',
             'Form',
@@ -203,18 +223,19 @@ const deleteForm = asyncHandler(async(req, res, next) => {
             '',
             deletedForm.id.toString()
         );
-        res.json({message: 'Form deleted successfully', status: true, deletedForm});
+        res.json({ message: 'Form deleted successfully', status: true, deletedForm });
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Export endpoints
-export{
+export {
     createForm,
     getForm,
     getFormData,
+    getFormWithSubmissions,
     getForms,
     getFormsByEmployee,
     publishForm,
