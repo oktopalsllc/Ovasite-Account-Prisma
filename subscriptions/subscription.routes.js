@@ -19,7 +19,6 @@ import {
 
 const subscriptionRouter = express.Router({ mergeParams: true });
 
-subscriptionRouter.use('/:orgId', verifyUser);
 subscriptionRouter.use('/:orgId', checkOrganizationExists);
 
 subscriptionRouter.post('/:orgId/subscription/create', createSubscription);

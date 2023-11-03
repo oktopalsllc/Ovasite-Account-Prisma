@@ -13,7 +13,6 @@ import { checkOrganizationExists } from "../organizations/organizations.middlewa
 
 const reportRouter = express.Router({ mergeParams: true });
 
-reportRouter.use("/:orgId", verifyUser);
 reportRouter.use("/:orgId", checkOrganizationExists);
 
 reportRouter.post("/:orgId/report/create", createReport);

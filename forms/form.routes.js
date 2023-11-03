@@ -15,7 +15,6 @@ import {
 
 const formRouter = express.Router({ mergeParams: true });
 
-formRouter.use("/:orgId", verifyUser);
 formRouter.use("/:orgId", checkOrganizationExists);
 
 formRouter.post("/:orgId/form/create", createForm);
