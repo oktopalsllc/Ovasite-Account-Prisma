@@ -74,7 +74,6 @@ const getReports = asyncHandler(async(req, res, next) => {
                 projectId: projectId
             },
         });
-        if(reports.length === 0) throw new NotFoundError('No reports found');
         res.status(201).json(reports);
     } 
     catch (err) {
@@ -93,7 +92,6 @@ const getReportsByEmployee = asyncHandler(async(req, res, next) => {
                 projectId: projectId
             },
         });
-        if(reports.length === 0) throw new NotFoundError('No reports found');
         res.status(201).json(reports);
     } 
     catch (err) {

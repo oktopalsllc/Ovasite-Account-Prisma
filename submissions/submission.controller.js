@@ -77,7 +77,6 @@ const getSubmissions = asyncHandler(async(req, res, next) => {
                 projectId: projectId
             },
         });
-        if(submissions.length === 0) throw new NotFoundError('No submissions found for this form');
         res.json(submissions);
     }
     catch(err){
@@ -94,7 +93,6 @@ const getFormSubmissions = asyncHandler(async(req, res, next) => {
                 formId: formId
             },
         });
-        if(submissions.length === 0) throw new NotFoundError('No submissions found for this form');
         res.status(201).json(submissions);
     }
     catch(err){
@@ -113,7 +111,6 @@ const getEmployeeSubmissions = asyncHandler(async(req, res, next) => {
                 projectId: projectId
             },
         });
-        if(submissions.length === 0) throw new NotFoundError('No submissions found for this form');
         res.status(201).json(submissions);
     }
     catch(err){

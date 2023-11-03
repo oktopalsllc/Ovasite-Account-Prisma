@@ -117,8 +117,7 @@ const getOrgProjects = asyncHandler(async (req, res) => {
                 organizationId: orgId
             },
         });
-        if(projects.length === 0) throw new NotFoundError('No projects found');
-        res.json(projects);
+        res.status(201).json(projects);
     }
     catch(err){
         next(err);
@@ -137,7 +136,6 @@ const getEmployeeProjects = asyncHandler(async (req, res, next) => {
                 project: true,
             },
         });
-        if(projects.length === 0) throw new NotFoundError('No projects found');
         res.status(201).json(projects);
     }
     catch(err){
@@ -157,7 +155,6 @@ const getProjectEmployees = asyncHandler(async (req, res, next) => {
                 employee: true,
             },
         });
-        if(employees.length === 0) throw new NotFoundError('No employees found');
         res.status(201).json(employees);
     }
     catch(err){
