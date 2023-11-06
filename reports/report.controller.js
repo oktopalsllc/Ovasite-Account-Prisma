@@ -15,15 +15,14 @@ const createReport = asyncHandler(async(req, res, next) => {
         const { 
             title, 
             reportData, 
-            creatorId, 
             projectId 
         } = req.body;
         const newReport = await prisma.report.create({
             data: {
                 title,
                 reportData,
-                orgId,
-                creatorId,
+                organizationId: orgId,
+                creatorId: {connect: {id: req.employeeId}},
                 projectId
             },
         });

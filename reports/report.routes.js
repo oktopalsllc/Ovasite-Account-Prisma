@@ -8,12 +8,12 @@ import {
   updateReport,
 } from "./report.controller.js";
 
-import { verifyUser } from "../middleware/authenticate.js";
+import { getCurrentEmployee } from "../middleware/getCurrentEmployee.js";
 import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
 
 const reportRouter = express.Router({ mergeParams: true });
 
-reportRouter.use("/:orgId", checkOrganizationExists);
+reportRouter.use("/:orgId", checkOrganizationExists, getCurrentEmployee);
 
 reportRouter.post("/:orgId/report/create", createReport);
 reportRouter.get("/:orgId/report/:reportId", getReport);

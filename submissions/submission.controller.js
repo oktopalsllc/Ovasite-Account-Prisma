@@ -6,6 +6,7 @@ import {
 } from '../middleware/errors.js';
 import { createObjectCsvWriter } from 'csv-writer';
 import { createAuditLog } from '../helpers/auditHelper.js';
+import axios from 'axios';
 
 const prisma = new PrismaClient();
 
@@ -13,25 +14,27 @@ const prisma = new PrismaClient();
 const createSubmission = asyncHandler(async(req, res, next) => {
     try{
         const orgId = req.params.orgId;
-        const { 
-            title, 
-            description, 
-            submissionData, 
-            geolocation, 
-            creatorId, 
-            formId, 
-            projectId 
-        } = req.body;
+        const { formValues, formInfo, location } = req.body;
+        const { formId } = formInfo;
+        const parsedFormId = JSON.parse(formId);
+        const { latitude, longitude } = JSON.parse(location);
+        const geoData = await axios.get(`https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`);
+        const geoDataString = JSON.stringify(geoData.data);
+        const form = await prisma.form.findUnique({
+            where: {
+                id: parsedFormId,
+            }
+        });
         const newSubmission = await prisma.submission.create({
             data: {
-                title,
-                description,
-                submissionData,
-                geolocation,
-                creatorId,
+                title: form.title,
+                description: form.description,
+                submissionData: formValues,
+                geolocation: geoDataString,
+                creatorId: {connect: {id: req.employeeId}},
                 organizationId: orgId,
-                formId,
-                projectId
+                formId: parsedFormId,
+                projectId: form.projectId
             },
         });
         await createAuditLog(

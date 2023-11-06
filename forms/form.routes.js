@@ -1,5 +1,5 @@
 import express from "express";
-import { verifyUser } from "../middleware/authenticate.js";
+import { getCurrentEmployee } from "../middleware/getCurrentEmployee.js";
 import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
 import {
   createForm,
@@ -15,7 +15,7 @@ import {
 
 const formRouter = express.Router({ mergeParams: true });
 
-formRouter.use("/:orgId", checkOrganizationExists);
+formRouter.use("/:orgId", checkOrganizationExists, getCurrentEmployee);
 
 formRouter.post("/:orgId/form/create", createForm);
 formRouter.get("/:orgId/form/:formId", getForm);

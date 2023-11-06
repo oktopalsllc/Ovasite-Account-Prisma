@@ -10,12 +10,12 @@ import {
 } from "./submission.controller.js";
 
 import express from "express";
-import { verifyUser } from "../middleware/authenticate.js";
+import { getCurrentEmployee } from "../middleware/getCurrentEmployee.js";
 import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
 
 const submissionRouter = express.Router({ mergeParams: true });
 
-submissionRouter.use("/:orgId", checkOrganizationExists);
+submissionRouter.use("/:orgId", checkOrganizationExists, getCurrentEmployee);
 
 submissionRouter.post("/:orgId/submission/create", createSubmission);
 submissionRouter.get("/:orgId/submission/:submissionId", getSubmission);
