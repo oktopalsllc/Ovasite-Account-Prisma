@@ -11,13 +11,12 @@ const prisma = new PrismaClient();
 const createForm = asyncHandler(async (req, res, next) => {
     try {
         const orgId = req.params.orgId;
-        const { title, formData, description, creatorId, projectId } = req.body;
+        const { title, description, projectId } = req.body;
         const newForm = await prisma.form.create({
             data: {
                 title,
-                formData,
                 description,
-                creatorId,
+                creatorId: {connect: {id: req.employeeId}},
                 organizationId: orgId,
                 projectId
             },
@@ -168,7 +167,7 @@ const publishForm = asyncHandler(async (req, res, next) => {
 const updateForm = asyncHandler(async (req, res, next) => {
     try {
         const { orgId, formId } = req.params;
-        const { title, formData, description } = req.body;
+        const { title, description, formData } = req.body;
         const oldValues = await prisma.form.findUnique({
             where: {
                 id: formId,
@@ -180,8 +179,8 @@ const updateForm = asyncHandler(async (req, res, next) => {
             },
             data: {
                 title,
-                formData,
                 description,
+                formData,
                 updatedAt: new Date(),
             },
         });
