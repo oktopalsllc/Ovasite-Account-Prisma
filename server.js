@@ -28,7 +28,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://ovasite.vercel.app"],
+    origin: ["http://localhost:3000", "https://ovasite.vercel.app", "https://ovasiteapp.vercel.app"],
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true
   })
