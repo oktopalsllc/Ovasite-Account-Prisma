@@ -52,6 +52,11 @@ const getReport = asyncHandler(async(req, res, next) => {
     try {
         const { reportId } = req.params;
         const report = await prisma.report.findUnique({
+            include: {
+                project: true,
+                employee: true,
+                organization: true
+            },
             where: {
                 id: reportId
             },
@@ -69,6 +74,11 @@ const getReports = asyncHandler(async(req, res, next) => {
     try {
         const { projectId } = req.params;
         const reports = await prisma.report.findMany({
+            include: {
+                project: true,
+                employee: true,
+                organization: true
+            },
             where: {
                 projectId: projectId
             },
@@ -85,6 +95,11 @@ const getReportsByEmployee = asyncHandler(async(req, res, next) => {
     try {
         const {employeeId, projectId}  = req.params;
         const reports = await prisma.report.findMany({
+            include: {
+                project: true,
+                employee: true,
+                organization: true
+            },
             where: {
                 creatorId: employeeId,
                 projectId: projectId
