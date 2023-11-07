@@ -22,7 +22,7 @@ const createReport = asyncHandler(async(req, res, next) => {
                 title,
                 reportData,
                 organizationId: orgId,
-                creatorId: {connect: {id: req.employeeId}},
+                creatorId: req.employeeId,
                 projectId
             },
         });
@@ -93,7 +93,7 @@ const getReports = asyncHandler(async(req, res, next) => {
 // Get reports by an employee
 const getReportsByEmployee = asyncHandler(async(req, res, next) => {
     try {
-        const {employeeId, projectId}  = req.params;
+        const {employeeId,projectId}  = req.params;
         const reports = await prisma.report.findMany({
             include: {
                 project: true,
