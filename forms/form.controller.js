@@ -16,7 +16,7 @@ const createForm = asyncHandler(async (req, res, next) => {
             data: {
                 title,
                 description,
-                creatorId: {connect: {id: req.employeeId}},
+                creatorId: req.employeedId,
                 organizationId: orgId,
                 projectId
             },
