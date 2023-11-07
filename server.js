@@ -15,7 +15,8 @@ import {
   formRouter,
   submissionRouter,
   reportRouter,
-  auditRouter
+  auditRouter,
+  aiRouter,
 } from "./localImport.js";
 dotenv.config();
 
