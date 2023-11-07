@@ -31,7 +31,7 @@ const createSubmission = asyncHandler(async(req, res, next) => {
                 description: form.description,
                 submissionData: formValues,
                 geolocation: geoDataString,
-                creatorId: req.employeeId,
+                employee: {connect:{id: req.employeedId}},
                 organizationId: orgId,
                 formId: parsedFormId,
                 projectId: form.projectId

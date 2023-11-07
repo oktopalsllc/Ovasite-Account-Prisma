@@ -22,7 +22,7 @@ const createReport = asyncHandler(async(req, res, next) => {
                 title,
                 reportData,
                 organizationId: orgId,
-                creatorId: req.employeeId,
+                employee: {connect:{id: req.employeedId}},
                 projectId
             },
         });
