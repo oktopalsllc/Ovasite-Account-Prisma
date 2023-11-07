@@ -95,6 +95,12 @@ const getOrgProject = asyncHandler(async (req, res, next) => {
     try{
         const { orgId, projectId } = req.params;
         const project = await prisma.project.findUnique({
+            include:{
+                forms: true,
+                submissions: true,
+                reports: true,
+                employeeProjectAssociation: true
+            },
             where: {
                 id: projectId,
                 organizationId: orgId
