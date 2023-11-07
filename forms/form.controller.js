@@ -17,7 +17,7 @@ const createForm = asyncHandler(async (req, res, next) => {
                 title,
                 description,
                 employee: {connect:{id: req.employeedId}},
-                organizationId: orgId,
+                organization: {connect:{id: orgId}},
                 projectId
             },
         });
