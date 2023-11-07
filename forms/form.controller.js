@@ -43,6 +43,11 @@ const getForm = asyncHandler(async (req, res, next) => {
     try {
         const { formId } = req.params;
         const form = await prisma.form.findUnique({
+            include:{                
+                employee: true,
+                organization: true,
+                project: true
+            },
             where: {
                 id: formId,
             },
@@ -81,7 +86,10 @@ const getFormWithSubmissions = asyncHandler(async (req, res, next) => {
         const { formId } = req.params;
         const form = await prisma.form.findUnique({
             include: {
-                submissions: true
+                submissions: true,
+                employee: true,
+                organization: true,
+                project: true
             },
             where: {
                 id: formId,
@@ -100,6 +108,9 @@ const getForms = asyncHandler(async (req, res, next) => {
     try {
         const { projectId } = req.params;
         const forms = await prisma.form.findMany({
+            include:{
+                submissions: true,
+            },
             where: {
                 projectId: projectId
             },
@@ -115,7 +126,13 @@ const getForms = asyncHandler(async (req, res, next) => {
 const getFormsByEmployee = asyncHandler(async (req, res, next) => {
     try {
         const { orgId, creatorId, projectId } = req.params;
-        const forms = await prisma.form.findMany({
+        const forms = await prisma.form.findMany({            
+            include: {
+                submissions: true,
+                employee: true,
+                organization: true,
+                project: true
+            },
             where: {
                 organizationId: orgId,
                 creatorId: creatorId,
