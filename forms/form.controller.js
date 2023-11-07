@@ -16,9 +16,9 @@ const createForm = asyncHandler(async (req, res, next) => {
             data: {
                 title,
                 description,
-                employee: {connect:{id: req.employeedId}},
+                employee: {connect:{id: req.employeeId}},
                 organization: {connect:{id: orgId}},
-                projectId
+                project: {connect:{id: projectId}},
             },
         });
         await createAuditLog(
