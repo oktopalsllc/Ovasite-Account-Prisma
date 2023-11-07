@@ -99,7 +99,7 @@ const getOrgProject = asyncHandler(async (req, res, next) => {
                 forms: true,
                 submissions: true,
                 reports: true,
-                employeeProjectAssociation: true
+                projectAssociations: true
             },
             where: {
                 id: projectId,
@@ -121,7 +121,7 @@ const getOrgProjects = asyncHandler(async (req, res) => {
         const projects = await prisma.project.findMany({            
             include: {
                 submissions: true,
-                employeeProjectAssociation: true,
+                projectAssociations: true,
                 organization: true,
                 forms: true,
                 reports: true
