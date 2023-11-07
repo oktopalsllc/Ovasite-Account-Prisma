@@ -12,7 +12,7 @@ export const getCurrentEmployee = asyncHandler(async (req, res, next) => {
     const employee = await prisma.employee.findFirst({
       where: {
         userId,
-        orgId, // You may access the organization ID from the request
+        organizationId: orgId, // You may access the organization ID from the request
       },
     });
     if (!employee) {
