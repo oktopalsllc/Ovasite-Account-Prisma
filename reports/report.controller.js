@@ -21,9 +21,9 @@ const createReport = asyncHandler(async(req, res, next) => {
             data: {
                 title,
                 reportData,
-                organizationId: orgId,
-                employee: {connect:{id: req.employeedId}},
-                projectId
+                organization: {connect:{ id: orgId}},
+                employee: {connect:{id: req.employeeId}},
+                project: {connect:{id: projectId}},
             },
         });
         await createAuditLog(
