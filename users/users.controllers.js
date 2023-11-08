@@ -66,7 +66,7 @@ const getUserOrgs = asyncHandler(async (req, res) => {
     const employees = await prisma.employee.findMany({
       where: {
         userId: userId,
-        role: EmployeeRole.OWNER
+        role: employeeRole.OWNER
       },
       include: {
         organization: true
