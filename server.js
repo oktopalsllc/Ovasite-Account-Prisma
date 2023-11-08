@@ -51,6 +51,7 @@ app.use(`${basePath}/orgs`, formRouter);
 app.use(`${basePath}/orgs`, submissionRouter);
 app.use(`${basePath}/orgs`, reportRouter);
 app.use(`${basePath}/orgs`, auditRouter);
+app.use(`${basePath}/orgs`, aiRouter);
 
 //Connect to the database before listening
 const PORT = process.env.PORT || process.env.API_PORT;
