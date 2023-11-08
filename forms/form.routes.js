@@ -11,6 +11,7 @@ import {
   getFormsByEmployee,
   publishForm,
   updateForm,
+  updateFormData,
 } from "./form.controller.js";
 
 const formRouter = express.Router({ mergeParams: true });
@@ -25,6 +26,7 @@ formRouter.get("/:orgId/forms/:projectId", getForms);
 formRouter.get("/:orgId/userforms/:creatorId/:projectId", getFormsByEmployee);
 formRouter.patch("/:orgId/form/publish/:projectId", publishForm);
 formRouter.patch("/:orgId/form/update/:formId", updateForm);
+formRouter.patch("/:orgId/form/update/data/:formId", updateFormData);
 formRouter.delete("/:orgId/form/delete/:formId", deleteForm);
 
 export default formRouter;
