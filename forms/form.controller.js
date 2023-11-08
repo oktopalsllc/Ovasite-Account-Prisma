@@ -180,11 +180,11 @@ const publishForm = asyncHandler(async (req, res, next) => {
     }
 });
 
-// Updates a form
-const updateForm = asyncHandler(async (req, res, next) => {
+// Updates a form Data
+const updateFormData = asyncHandler(async (req, res, next) => {
     try {
         const { orgId, formId } = req.params;
-        const { title, description, formData } = req.body;
+        const { formData } = req.body;
         const oldValues = await prisma.form.findUnique({
             where: {
                 id: formId,
@@ -198,6 +198,44 @@ const updateForm = asyncHandler(async (req, res, next) => {
                 title,
                 description,
                 formData,
+                updatedAt: new Date(),
+            },
+        });
+        if (!updatedForm) throw new NotFoundError('Form does not exist');
+        await createAuditLog(
+            req.user.email,
+            req.ip || null,
+            orgId,
+            'update',
+            'Form',
+            JSON.stringify(oldValues),
+            JSON.stringify(updateForm),
+            oldValues.id.toString()
+        );
+        res.status(201).json({ message: 'Form updated successfully', status: true, updatedForm });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+
+// Update the form information
+const updateForm = asyncHandler(async (req, res, next) => {
+    try {
+        const { orgId, formId } = req.params;
+        const { title, description } = req.body;
+        const oldValues = await prisma.form.findUnique({
+            where: {
+                id: formId,
+            },
+        });
+        const updatedForm = await prisma.form.update({
+            where: {
+                id: formId
+            },
+            data: {
+                title,
+                description,
                 updatedAt: new Date(),
             },
         });
@@ -256,5 +294,6 @@ export {
     getFormsByEmployee,
     publishForm,
     updateForm,
+    updateFormData,
     deleteForm
 };
