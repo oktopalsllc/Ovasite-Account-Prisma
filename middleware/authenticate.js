@@ -6,8 +6,8 @@ import { UserRole } from "@prisma/client";
 const verifyToken = (req, res, next) => {
   const bearerToken = req.headers.authorization?.split(" ")[1];
   const cookiesToken = req.cookies.access_token;
-  // const token = bearerToken || cookiesToken;
-  const token = cookiesToken || bearerToken;
+   const token = bearerToken || cookiesToken;
+  //const token = cookiesToken || bearerToken;
 
   if (!token) {
     return res.status(403).json({msg: "You must be logged in"})
