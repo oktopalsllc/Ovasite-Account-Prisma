@@ -57,8 +57,8 @@ const createOrganization = asyncHandler(async (req, res) => {
   }
 });
 
-// Get all organizations
-const getAllOrganizations = asyncHandler(async (req, res) => {
+// Get all current user organizations
+const getUserOrganizations = asyncHandler(async (req, res) => {
   const { email, id } = req.user;
   try {
     const organizations = await prisma.organization.findMany({
@@ -85,8 +85,6 @@ const getAllOrganizations = asyncHandler(async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-
 
 // Get an organization by ID
 const getOrganizationById = asyncHandler(async (req, res) => {
@@ -186,7 +184,7 @@ const getOrganizationOwners = asyncHandler(async (req, res) => {
 export {
   createOrganization,
   deleteOrganization,
-  getAllOrganizations,
+  getUserOrganizations,
   getOrganizationById,
   updateOrganization,
   getOrganizationOwners
