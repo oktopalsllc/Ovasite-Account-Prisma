@@ -154,8 +154,6 @@ model Form {
   formData       String       @default("[]")
   description    String       @default("")
   published      Boolean      @default(false)
-  visits         Int @default(0)
-  subCount       Int @default(0)
   creatorId      String
   organizationId String
   projectId      String
