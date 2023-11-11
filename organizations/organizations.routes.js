@@ -3,7 +3,7 @@ import { verifyToken } from "../middleware/authenticate.js";
 import {
   createOrganization,
   deleteOrganization,
-  getAllOrganizations,
+  getUserOrganizations,
   getOrganizationById,
   getOrganizationOwners,
   updateOrganization,
@@ -13,7 +13,7 @@ const organizationsRouter = express.Router({ mergeParams: true });
 organizationsRouter.use("/", verifyToken);
 
 organizationsRouter.post("/", createOrganization);
-organizationsRouter.get("/", getAllOrganizations);
+organizationsRouter.get("/", getUserOrganizations);
 organizationsRouter.get("/org-owners", getOrganizationOwners);
 organizationsRouter.get("/:id", getOrganizationById);
 organizationsRouter.patch("/:id", updateOrganization);
