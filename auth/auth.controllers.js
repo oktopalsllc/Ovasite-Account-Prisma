@@ -12,7 +12,7 @@ const BASE_URL = `http://localhost:${process.env.PORT}`;
 
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password, externalId, role } = req.body;
 
     const lowercaseEmail = email.toLowerCase();
 
@@ -25,7 +25,7 @@ const registerUser = asyncHandler(async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       await prisma.user.create({
-        data: { email: lowercaseEmail, password: hashedPassword, role },
+        data: { email: lowercaseEmail, externalId, password: hashedPassword, role },
       });
 
       const stripeCustomer = await addNewCustomer(lowercaseEmail);
