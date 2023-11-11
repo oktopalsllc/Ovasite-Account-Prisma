@@ -11,7 +11,7 @@ import {
   getFormsByEmployee,
   publishForm,
   updateForm,
-  updateFormData,
+  updateFormData
 } from "./form.controller.js";
 
 const formRouter = express.Router({ mergeParams: true });
