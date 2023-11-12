@@ -84,10 +84,10 @@ const deleteAuditLog = asyncHandler(async (req, res, next) => {
 // Delete a specific org audit log
 const deleteOrgAuditLog = asyncHandler(async (req, res, next) => {
     try {
-        const { orgId, id } = req.params;
+        const { orgId, auditId } = req.params;
         const deletedLog = await prisma.audit.delete({
             where: {
-                id: id,
+                id: auditId,
                 orgId: orgId
             },
         });
