@@ -97,6 +97,14 @@ const loginUser = asyncHandler(async (req, res) => {
     const email = req.body.email.toLowerCase();
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        organizations: {
+          select:{
+            id: true,
+            name: true
+          }
+        }
+      }
     });
 
     if (!user) {
@@ -118,7 +126,8 @@ const loginUser = asyncHandler(async (req, res) => {
       stripeSubscriptionId: user.stripeSubscriptionId,
       stripePriceId: user.stripePriceId,
       stripeCurrentPeriodEnd: user.stripeCurrentPeriodEnd,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
+      organizations: user.organizations
     }
 
     // include user information
