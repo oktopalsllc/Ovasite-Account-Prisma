@@ -26,6 +26,12 @@ const getOrgAuditLogs = asyncHandler(async (req, res, next) => {
             where: {
                 orgId: orgId,
             },
+            select:{
+                id: true,
+                type: true,
+                tableName: true,
+                userMail: true
+            }
         });
         res.status(201).json(logs);
     } 
@@ -37,12 +43,17 @@ const getOrgAuditLogs = asyncHandler(async (req, res, next) => {
 // Get a specific audit log
 const getAuditLog = asyncHandler(async (req, res, next) => {
     try {
-        const { orgId, id } = req.params;
+        const { auditId } = req.params;
         const log = await prisma.audit.findUnique({
             where: {
-                id: id,
-                orgId: orgId
+                id: auditId
             },
+            select:{
+                id: true,
+                type: true,
+                tableName: true,
+                userMail: true
+            }
         });
         if (!log) {
             throw new NotFoundError('Audit log not found');
