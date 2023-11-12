@@ -1,5 +1,4 @@
 import express from "express";
-import { verifyUser } from "../middleware/authenticate.js";
 import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
 import {
   deleteAuditLog,
@@ -10,7 +9,6 @@ import {
 } from "./audit.controller.js";
 const auditRouter = express.Router({ mergeParams: true });
 
-auditRouter.use("/:orgId", verifyUser);
 auditRouter.use("/:orgId", checkOrganizationExists);
 
 auditRouter.get("/:orgId/audits", getAuditLogs);
