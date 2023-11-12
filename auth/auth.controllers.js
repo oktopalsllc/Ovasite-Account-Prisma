@@ -12,7 +12,7 @@ const BASE_URL = `http://localhost:${process.env.PORT}`;
 
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { email, password, externalId, source, role } = req.body;
+    const { email, password, source, role } = req.body;
 
     const lowercaseEmail = email.toLowerCase();
 
@@ -27,7 +27,6 @@ const registerUser = asyncHandler(async (req, res) => {
       await prisma.user.create({
         data: { 
           email: lowercaseEmail, 
-          externalId, 
           password: hashedPassword, 
           source, 
           role 
