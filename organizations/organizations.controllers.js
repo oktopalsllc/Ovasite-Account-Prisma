@@ -65,9 +65,6 @@ const getUserOrganizations = asyncHandler(async (req, res) => {
       where: {
         OR: [{ userId: id }, { employees: { some: { email } } }],
       },
-      select: {
-        id: true,
-      },
       include: {
         employees: {
           select: {
