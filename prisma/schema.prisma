@@ -7,17 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id                 String    @id @default(cuid())
-  email              String    @unique
-  externalId         String @unique
-  password           String?
-  phoneNumber        String?
-  role               UserRole  @default(USER)
-  source             Source    @default(OTHER)
-  passwordResetToken String?
-  passwordResetAt    DateTime?
+  id                     String    @id @default(cuid())
+  email                  String    @unique   
+  password               String?
+  phoneNumber            String?
+  role                   UserRole  @default(USER)
+  source                 Source    @default(OTHER)
+  passwordResetToken     String?
+  passwordResetAt        DateTime?
   stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
   stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
   stripePriceId          String?   @map(name: "stripe_price_id")
@@ -31,27 +29,26 @@ model User {
 }
 
 model Subscription {
-  id                  String       @id @default(cuid())
-  name                String       @unique
+  id                  String  @id @default(cuid())
+  name                String  @unique
   slug                String
   numberOfOrgs        String
   numberOfEmployees   String
   numberOfProjects    String
   numberOfForms       String
   numberOfSubmissions String
-  offlineSubmission   Boolean       @default(true)
+  offlineSubmission   Boolean @default(true)
   price               Price?
 }
 
 model Price {
-  id              String       @id @default(cuid())
-  amount          Int
-  testId          String?
-  productionId    String?
-  subscriptionId  String @unique
-  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  amount         Int
+  testId         String?
+  productionId   String?
+  subscriptionId String       @unique
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 }
-
 
 model Organization {
   id          String       @id @default(cuid())
@@ -168,7 +165,7 @@ model Form {
 }
 
 model Submission {
-  id             String       @id @default(cuid())
+  id             String  @id @default(cuid())
   title          String
   description    String
   submissionData String
@@ -205,7 +202,6 @@ model Report {
   @@index([projectId, creatorId, organizationId])
 }
 
-
 model Audit {
   id        String   @id @default(cuid())
   userMail  String
@@ -226,7 +222,6 @@ enum EmployeeRole {
   GUEST
 }
 
-
 enum UserRole {
   USER
   ADMIN
@@ -241,6 +236,7 @@ enum Source {
   GOOGLE
   OTHER
 }
+
 enum ProjectRole {
   SUPERVISOR
   FIELD_AGENT
