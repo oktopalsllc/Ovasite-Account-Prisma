@@ -149,12 +149,12 @@ const joinOrganization = asyncHandler(async (req, res) => {
     });
 
     // Add the new employee to the organization's employee array
-    await prisma.organization.update({
-      where: { id: organization.id },
-      data: {
-        employees: { connect: { id: newEmployee.id } },
-      },
-    });
+    // await prisma.organization.update({
+    //   where: { id: organization.id },
+    //   data: {
+    //     employees: { connect: { id: newEmployee.id } },
+    //   },
+    // });
 
     // Delete the invite link as it has been used
     await prisma.invite.deleteMany({
