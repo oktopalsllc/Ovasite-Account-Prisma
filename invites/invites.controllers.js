@@ -6,7 +6,7 @@ import sendMail from "../services/sendMail.js";
 
 const prisma = new PrismaClient();
 
-const url = "http://localhost:8000/api/v1";
+const url = "https://ovasite.onrender.com/api/v1";
 
 const generateInviteLink = asyncHandler(async (req, res) => {
   let { email, role } = req.body;
@@ -57,7 +57,7 @@ const generateInviteLink = asyncHandler(async (req, res) => {
     const mailOptions = {
       from: "Ovasite <no-reply@oktopals.com>",
       to: email,
-      subject: "Invitation to Join organization",
+      subject: `${organization.name} invited you to Ovasite`,
       html: `
           <div class="container" style="max-width: 90%; margin: auto; padding-top: 20px">
             <h2>You have been invited to join an organization.</h2>
