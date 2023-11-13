@@ -10,7 +10,7 @@ const url = "http://localhost:8000/api/v1";
 
 const generateInviteLink = asyncHandler(async (req, res) => {
   let { email, role } = req.body;
-  const { orgId: orgId } = req.params;
+  const { orgId } = req.params;
   email = email.toLowerCase();
 
   try {
@@ -25,7 +25,7 @@ const generateInviteLink = asyncHandler(async (req, res) => {
 
     // Check if the email already exists in the organization
     const existingEmployee = await prisma.employee.findFirst({
-      where: { email, orgId },
+      where: { email, organizationId: orgId },
     });
 
     if (existingEmployee) {
@@ -42,20 +42,20 @@ const generateInviteLink = asyncHandler(async (req, res) => {
     expireDate.setDate(expireDate.getDate() + 7);
 
     // Save the invite link with the organization relationship
-    await prisma.Invite.create({
+    await prisma.invite.create({
       data: {
         token: inviteToken,
         email,
         role,
         expirationDate: expireDate,
         organization: { connect: { id: orgId } },
-        invitedBy: { connect: { id: req.employeeId } },
+        employee: { connect: { id: req.employeeId } },
       },
     });
 
     // Send an email with the invite link
     const mailOptions = {
-      from: "TeamLyf <onboarding@resend.dev>",
+      from: "Ovasite <no-reply@oktopals.com>",
       to: email,
       subject: "Invitation to Join organization",
       html: `
@@ -106,7 +106,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
 
     // Check if the organization exists
     const organization = await prisma.organization.findUnique({
-      where: { id: invite.orgId },
+      where: { id: invite.organizationId },
     });
 
     if (!organization) {
@@ -122,7 +122,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
         data: {
           email: lowercasedEmail,
           password: hashedPassword,
-          organizations: { connect: { id: invite.orgId } },
+          organizations: { connect: { id: invite.organizationId } },
         },
       });
     } else {
@@ -131,7 +131,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
         where: { email: lowercasedEmail },
         data: {
           organizations: {
-            connect: { id: invite.orgId },
+            connect: { id: invite.organizationId },
           },
         },
       });
