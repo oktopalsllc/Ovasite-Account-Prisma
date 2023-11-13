@@ -49,7 +49,7 @@ const generateInviteLink = asyncHandler(async (req, res) => {
         role,
         expirationDate: expireDate,
         organization: { connect: { id: orgId } },
-        invitedBy: { connect: { id: req.employeeId } },
+        employee: { connect: { id: req.employeeId } },
       },
     });
 
