@@ -10,7 +10,7 @@ const url = "http://localhost:8000/api/v1";
 
 const generateInviteLink = asyncHandler(async (req, res) => {
   let { email, role } = req.body;
-  const { orgId: orgId } = req.params;
+  const { orgId } = req.params;
   email = email.toLowerCase();
 
   try {
