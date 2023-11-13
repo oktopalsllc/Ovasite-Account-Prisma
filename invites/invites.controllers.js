@@ -122,7 +122,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
         data: {
           email: lowercasedEmail,
           password: hashedPassword,
-          organizations: { connect: { id: invite.orgId } },
+          organizations: { connect: { id: invite.organizationId } },
         },
       });
     } else {
@@ -131,7 +131,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
         where: { email: lowercasedEmail },
         data: {
           organizations: {
-            connect: { id: invite.orgId },
+            connect: { id: invite.organizationId },
           },
         },
       });
