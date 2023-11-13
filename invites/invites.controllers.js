@@ -25,7 +25,7 @@ const generateInviteLink = asyncHandler(async (req, res) => {
 
     // Check if the email already exists in the organization
     const existingEmployee = await prisma.employee.findFirst({
-      where: { email, orgId },
+      where: { email, organizationId: orgId },
     });
 
     if (existingEmployee) {
@@ -42,7 +42,7 @@ const generateInviteLink = asyncHandler(async (req, res) => {
     expireDate.setDate(expireDate.getDate() + 7);
 
     // Save the invite link with the organization relationship
-    await prisma.Invite.create({
+    await prisma.invite.create({
       data: {
         token: inviteToken,
         email,
@@ -55,7 +55,7 @@ const generateInviteLink = asyncHandler(async (req, res) => {
 
     // Send an email with the invite link
     const mailOptions = {
-      from: "TeamLyf <onboarding@resend.dev>",
+      from: "Ovasite <no-reply@oktopals.com>",
       to: email,
       subject: "Invitation to Join organization",
       html: `
@@ -106,7 +106,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
 
     // Check if the organization exists
     const organization = await prisma.organization.findUnique({
-      where: { id: invite.orgId },
+      where: { id: invite.organizationId },
     });
 
     if (!organization) {
