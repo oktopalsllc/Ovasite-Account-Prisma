@@ -16,6 +16,7 @@ model User {
   source                 Source    @default(OTHER)
   passwordResetToken     String?
   passwordResetAt        DateTime?
+  refreshToken          String?
 
   employees     Employee[]
   organizations Organization[]

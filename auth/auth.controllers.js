@@ -132,7 +132,9 @@ const loginUser = asyncHandler(async (req, res) => {
     });
     res
       .cookie("access_token", token, {
-        httpOnly: true,
+        httpOnly: true, 
+        sameSite: "none",
+        secure: true,
       })
       .status(200)
       .json({ access_token: token, userInfo: userInfo});
