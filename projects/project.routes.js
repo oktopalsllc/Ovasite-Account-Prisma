@@ -5,6 +5,7 @@ import{
     getOrgProjects,
     getEmployeeProjects,
     getProjectEmployees,
+    getProjectStats,
     editEmployeeRole,
     removeEmployee,
     updateProject,
@@ -28,6 +29,7 @@ projectRouter.post('/:orgId/project/create', createProject);
 projectRouter.post('/:orgId/project/adduser/:projectId', addEmployee);
 projectRouter.get('/:orgId/project/:projectId', getOrgProject);
 projectRouter.get('/:orgId/projects', getOrgProjects);
+projectRouter.get('/:orgId/project/stats/:projectId', getProjectStats);
 projectRouter.get('/:orgId/userprojects/:empId', getEmployeeProjects);
 projectRouter.get('/:orgId/projectusers/:projectId', getProjectEmployees);
 projectRouter.patch('/:orgId/updateprojectrole/:projectId', editEmployeeRole);

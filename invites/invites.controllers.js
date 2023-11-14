@@ -122,20 +122,21 @@ const joinOrganization = asyncHandler(async (req, res) => {
         data: {
           email: lowercasedEmail,
           password: hashedPassword,
-          organizations: { connect: { id: invite.organizationId } },
+          // organizations: { connect: { id: invite.organizationId } },
         },
       });
-    } else {
-      // If the user already exists, add the organization to their organizations array
-      existingUser = await prisma.user.update({
-        where: { email: lowercasedEmail },
-        data: {
-          organizations: {
-            connect: { id: invite.organizationId },
-          },
-        },
-      });
-    }
+    } 
+    // else {
+    //   // If the user already exists, add the organization to their organizations array
+    //   existingUser = await prisma.user.update({
+    //     where: { email: lowercasedEmail },
+    //     data: {
+    //       organizations: {
+    //         connect: { id: invite.organizationId },
+    //       },
+    //     },
+    //   });
+    // }
 
     // Create a new employee record
     const newEmployee = await prisma.employee.create({
@@ -157,8 +158,14 @@ const joinOrganization = asyncHandler(async (req, res) => {
     // });
 
     // Delete the invite link as it has been used
-    await prisma.invite.deleteMany({
+    const toDeleteInvite = await prisma.invite.findFirst({
       where: { token: inviteToken },
+    });
+    await prisma.invite.delete({
+      where: {
+        id: toDeleteInvite.id, 
+        token: inviteToken 
+      },
     });
 
     res.status(200).json(newEmployee);

@@ -4,7 +4,6 @@ import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
 import generateResetToken from "../services/generateResetToken.js";
 import sendMail from "../services/sendMail.js";
-import { addNewCustomer } from '../helpers/stripe.js';
 
 const prisma = new PrismaClient();
 
@@ -31,16 +30,6 @@ const registerUser = asyncHandler(async (req, res) => {
           source, 
           role 
         },
-      });
-
-      const stripeCustomer = await addNewCustomer(lowercaseEmail);
-      await prisma.user.update({
-        where: {
-          email: lowercaseEmail,
-        },
-        data:{
-          stripeCustomerId: stripeCustomer.id
-        }
       });
 
       return res.status(201).json({ message: "User registered successfully" });
@@ -97,14 +86,6 @@ const loginUser = asyncHandler(async (req, res) => {
     const email = req.body.email.toLowerCase();
     const user = await prisma.user.findUnique({
       where: { email },
-      include: {
-        organizations: {
-          select:{
-            id: true,
-            name: true
-          }
-        }
-      }
     });
 
     if (!user) {
@@ -117,7 +98,16 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(401).json("Wrong password or email!");
     }
-
+    const organizations = await prisma.organization.findMany({
+      where: {
+        OR: [{ employees: { some: { userId: user.id }}}, { employees: { some: { email } } }],
+      },
+      select: {
+        id: true,
+        name: true,
+        logo: true,
+      },
+    });
     const userInfo = {      
       id: user.id,
       email: user.email,
@@ -127,7 +117,7 @@ const loginUser = asyncHandler(async (req, res) => {
       stripePriceId: user.stripePriceId,
       stripeCurrentPeriodEnd: user.stripeCurrentPeriodEnd,
       createdAt: user.createdAt,
-      organizations: user.organizations
+      organizations: organizations
     }
 
     // include user information
