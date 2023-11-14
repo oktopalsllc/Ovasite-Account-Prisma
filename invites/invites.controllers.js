@@ -7,7 +7,6 @@ import sendMail from "../services/sendMail.js";
 const prisma = new PrismaClient();
 
 const url = "https://ovasite.onrender.com/api/v1";
-const url = "https://ovasite.onrender.com/api/v1";
 
 const generateInviteLink = asyncHandler(async (req, res) => {
   let { email, role } = req.body;
@@ -128,17 +127,6 @@ const joinOrganization = asyncHandler(async (req, res) => {
         },
       });
     }  
-    // else {
-    //   // If the user already exists, add the organization to their organizations array
-    //   existingUser = await prisma.user.update({
-    //     where: { email: lowercasedEmail },
-    //     data: {
-    //       organizations: {
-    //         connect: { id: invite.organizationId },
-    //       },
-    //     },
-    //   });
-    // }
     // else {
     //   // If the user already exists, add the organization to their organizations array
     //   existingUser = await prisma.user.update({
