@@ -183,7 +183,9 @@ const getProjectStats = asyncHandler(async (req, res, next) => {
                 projectId
             }
         });
-        if(!reports) throw new NotFoundError('Project not found');
+        const forms = await prisma.form.findMany({
+            where: { projectId }
+        });
         const stats = await prisma.form.aggregate({
             where: {
                 projectId
@@ -193,7 +195,6 @@ const getProjectStats = asyncHandler(async (req, res, next) => {
                 subCount: true,
             },
         });
-        if(!stats) throw new NotFoundError('Project not found');
         const visits = stats._sum.visits || 0;
         const subCount = stats._sum.subCount || 0;
 
@@ -210,7 +211,8 @@ const getProjectStats = asyncHandler(async (req, res, next) => {
             subCount: subCount,
             submissionRate: submissionRate,
             bounceRate: bounceRate,
-            reports: reports.length
+            reports: reports.length,
+            forms: forms.length
         }
         return res.status(201).json(projectStats);
     }
