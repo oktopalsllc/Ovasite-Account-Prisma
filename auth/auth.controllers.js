@@ -86,14 +86,6 @@ const loginUser = asyncHandler(async (req, res) => {
     const email = req.body.email.toLowerCase();
     const user = await prisma.user.findUnique({
       where: { email },
-      include: {
-        organizations: {
-          select:{
-            id: true,
-            name: true
-          }
-        }
-      }
     });
 
     if (!user) {
@@ -106,7 +98,16 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(401).json("Wrong password or email!");
     }
-
+    const organizations = await prisma.organization.findMany({
+      where: {
+        OR: [{ employees: { some: { userId: user.id }}}, { employees: { some: { email } } }],
+      },
+      select: {
+        id: true,
+        name: true,
+        logo: true,
+      },
+    });
     const userInfo = {      
       id: user.id,
       email: user.email,
@@ -116,7 +117,7 @@ const loginUser = asyncHandler(async (req, res) => {
       stripePriceId: user.stripePriceId,
       stripeCurrentPeriodEnd: user.stripeCurrentPeriodEnd,
       createdAt: user.createdAt,
-      organizations: user.organizations
+      organizations: organizations
     }
 
     // include user information
