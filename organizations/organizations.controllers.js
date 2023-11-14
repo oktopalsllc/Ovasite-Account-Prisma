@@ -1,6 +1,7 @@
 import { EmployeeRole, PrismaClient } from "@prisma/client";
 import asyncHandler from "express-async-handler";
 import ShortUniqueId from "short-unique-id";
+import { addNewCustomer } from '../helpers/stripe.js';
 
 const prisma = new PrismaClient();
 // TODO: transfer ownership of organizations to employee within the organization
@@ -9,9 +10,9 @@ const { randomUUID } = new ShortUniqueId({ length: 10 });
 
 // Create a new organization
 const createOrganization = asyncHandler(async (req, res) => {
-  const { name, logo, address } = req.body;
+  const { name, logo, orgEmail, address} = req.body;
   const { id: userId, email } = req.user;
-
+  const lowercaseEmail = orgEmail.toLowerCase();
   try {
     // Check if an organization with the same name already exists
     const existingOrganization = await prisma.organization.findFirst({
@@ -33,12 +34,23 @@ const createOrganization = asyncHandler(async (req, res) => {
     const newOrganization = await prisma.organization.create({
       data: {
         name: name,
+        email: lowercaseEmail,
         logo: logo || null,
         address: address || null,
         inviteCode: randomUUID(),
         userId,
       },
     });
+
+    const stripeCustomer = await addNewCustomer(lowercaseEmail);
+      await prisma.organization.update({
+        where: {
+          email: lowercaseEmail,
+        },
+        data:{
+          stripeCustomerId: stripeCustomer.id
+        }
+      });
 
     // Create a new employee associated with the user who created the organization
     const newEmployee = await prisma.employee.create({
