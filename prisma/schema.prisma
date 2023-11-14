@@ -16,10 +16,6 @@ model User {
   source                 Source    @default(OTHER)
   passwordResetToken     String?
   passwordResetAt        DateTime?
-  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
-  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
-  stripePriceId          String?   @map(name: "stripe_price_id")
-  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
 
   employees     Employee[]
   organizations Organization[]
@@ -53,11 +49,16 @@ model Price {
 model Organization {
   id          String       @id @default(cuid())
   name        String       @unique
+  email       String?       @unique
   logo        String?
   address     String?
   inviteCode  String       @unique
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?   @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
   employees   Employee[]
   forms       Form[]
   invite      Invite[]
@@ -105,8 +106,8 @@ model Invite {
   employeeId     String
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  employee       Employee     @relation(fields: [employeeId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@map("Invite")
 }
