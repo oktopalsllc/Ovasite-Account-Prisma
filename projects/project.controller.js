@@ -178,7 +178,12 @@ const getProjectEmployees = asyncHandler(async (req, res, next) => {
 const getProjectStats = asyncHandler(async (req, res, next) => {
     try {
         const projectId = req.projectId;
-
+        const reports = await prisma.report.findMany({
+            where: {
+                projectId
+            }
+        });
+        if(!reports) throw new NotFoundError('Project not found');
         const stats = await prisma.form.aggregate({
             where: {
                 projectId
@@ -205,6 +210,7 @@ const getProjectStats = asyncHandler(async (req, res, next) => {
             subCount: subCount,
             submissionRate: submissionRate,
             bounceRate: bounceRate,
+            reports: reports.length
         }
         return res.status(201).json(projectStats);
     }
