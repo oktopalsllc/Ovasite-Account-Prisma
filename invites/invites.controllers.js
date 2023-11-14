@@ -158,8 +158,14 @@ const joinOrganization = asyncHandler(async (req, res) => {
     // });
 
     // Delete the invite link as it has been used
-    await prisma.invite.delete({
+    const toDeleteInvite = await prisma.invite.findFirst({
       where: { token: inviteToken },
+    });
+    await prisma.invite.delete({
+      where: {
+        id: toDeleteInvite.id, 
+        token: inviteToken 
+      },
     });
 
     res.status(200).json(newEmployee);
