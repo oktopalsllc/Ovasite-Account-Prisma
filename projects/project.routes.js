@@ -13,11 +13,11 @@ import{
     deleteProject
 } from './project.controller.js';
 import { 
-  checkOrganizationExists 
+checkOrganizationExists 
 } from '../organizations/organizations.middleware.js';
 import {
-    
-    verifyUser
+  
+  verifyUser
 } from "../middleware/authenticate.js";
 import express from "express";
 
