@@ -33,7 +33,7 @@ projectRouter.get('/:orgId/project/:projectId', getOrgProject);
 projectRouter.get('/:orgId/projects', getOrgProjects);
 projectRouter.get('/:orgId/project/stats/:projectId', getProjectStats);
 projectRouter.get('/:orgId/userprojects/:empId', getEmployeeProjects);
-projectRouter.get('/:orgId/employees/:projectId', getAllEmployees);
+projectRouter.get('/:orgId/projectemployees/:projectId', getAllEmployees);
 projectRouter.get('/:orgId/projectusers/:projectId', getProjectEmployees);
 projectRouter.patch('/:orgId/updateprojectrole/:projectId', editEmployeeRole);
 projectRouter.delete('/:orgId/:projectId/removeemployee/:empId', removeEmployee);
