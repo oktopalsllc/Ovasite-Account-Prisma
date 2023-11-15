@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ProjectRole } from '@prisma/client';
 import asyncHandler from 'express-async-handler';
 import {
     NotFoundError,
@@ -29,9 +29,17 @@ const createProject = asyncHandler(async (req, res, next) => {
                 status,
                 startDate,
                 endDate,
-                organizationId: orgId
+                organization: {connect: {id: orgId}},
+                creator: {connect: {id: req.employeeId}}
             },
         });
+        const projectAssociaton = await prisma.employeeProjectAssociation.create({
+            data: {
+                employee: {connect: {id: req.employeeId}},
+                project: {connect:{id: newProject.id}},
+                role: 'MANAGER'
+            },            
+        })
         await createAuditLog(
             req.user.email,
             req.ip || null,
@@ -41,6 +49,16 @@ const createProject = asyncHandler(async (req, res, next) => {
             '',
             JSON.stringify(newProject),
             newProject.id.toString()
+        );
+        await createAuditLog(
+            req.user.email,
+            req.ip || null,
+            orgId,
+            'create',
+            'EmployeeProjectAssociation',
+            '',
+            JSON.stringify(projectAssociaton),
+            projectAssociaton.id.toString()
         );
         res.status(201).json({ message: 'Project created successfully', status: true, newProject });
     }
@@ -175,6 +193,33 @@ const getProjectEmployees = asyncHandler(async (req, res, next) => {
     }
 });
 
+// Get non associated employees
+const getAllEmployees = asyncHandler(async (req, res) => {
+    try {        
+        const { orgId, projectId } = req.params;
+        const employees = await prisma.employee.findMany({
+            where: {
+                organizationId: orgId,
+                // Exclude employees who have an association with the specified projectId
+                projectAssociations: {
+                    none: {
+                        projectId: projectId,
+                    },
+                },
+            },
+            select: {
+                id: true,
+                fullName: true,                
+            }
+        });
+
+        res.status(200).json(employees);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Get project stats
 const getProjectStats = asyncHandler(async (req, res, next) => {
     try {
         const projectId = req.projectId;
@@ -183,7 +228,9 @@ const getProjectStats = asyncHandler(async (req, res, next) => {
                 projectId
             }
         });
-        if(!reports) throw new NotFoundError('Project not found');
+        const forms = await prisma.form.findMany({
+            where: { projectId }
+        });
         const stats = await prisma.form.aggregate({
             where: {
                 projectId
@@ -193,7 +240,6 @@ const getProjectStats = asyncHandler(async (req, res, next) => {
                 subCount: true,
             },
         });
-        if(!stats) throw new NotFoundError('Project not found');
         const visits = stats._sum.visits || 0;
         const subCount = stats._sum.subCount || 0;
 
@@ -210,7 +256,8 @@ const getProjectStats = asyncHandler(async (req, res, next) => {
             subCount: subCount,
             submissionRate: submissionRate,
             bounceRate: bounceRate,
-            reports: reports.length
+            reports: reports.length,
+            forms: forms.length
         }
         return res.status(201).json(projectStats);
     }
@@ -428,6 +475,7 @@ export {
     addEmployee,
     getOrgProject,
     getOrgProjects,
+    getAllEmployees,
     getEmployeeProjects,
     getProjectEmployees,
     getProjectStats,

@@ -58,6 +58,7 @@ const generateInviteLink = asyncHandler(async (req, res) => {
       from: "Ovasite <no-reply@oktopals.com>",
       to: email,
       subject: `${organization.name} invited you to Ovasite`,
+      subject: `${organization.name} invited you to Ovasite`,
       html: `
           <div class="container" style="max-width: 90%; margin: auto; padding-top: 20px">
             <h2>You have been invited to join an organization.</h2>
@@ -125,7 +126,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
           // organizations: { connect: { id: invite.organizationId } },
         },
       });
-    } 
+    }  
     // else {
     //   // If the user already exists, add the organization to their organizations array
     //   existingUser = await prisma.user.update({
@@ -150,12 +151,12 @@ const joinOrganization = asyncHandler(async (req, res) => {
     });
 
     // Add the new employee to the organization's employee array
-    // await prisma.organization.update({
-    //   where: { id: organization.id },
-    //   data: {
-    //     employees: { connect: { id: newEmployee.id } },
-    //   },
-    // });
+    // // await prisma.organization.update({
+    // //   where: { id: organization.id },
+    // //   data: {
+    // //     employees: { connect: { id: newEmployee.id } },
+    // //   },
+    // // });
 
     // Delete the invite link as it has been used
     const toDeleteInvite = await prisma.invite.findFirst({

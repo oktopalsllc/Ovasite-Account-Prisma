@@ -209,7 +209,7 @@ const updateFormData = asyncHandler(async (req, res, next) => {
             'update',
             'Form',
             JSON.stringify(oldValues),
-            JSON.stringify(updateForm),
+            JSON.stringify(updatedForm),
             oldValues.id.toString()
         );
         res.status(201).json({ message: 'Form updated successfully', status: true, updatedForm });
@@ -247,7 +247,7 @@ const updateForm = asyncHandler(async (req, res, next) => {
             'update',
             'Form',
             JSON.stringify(oldValues),
-            JSON.stringify(updateForm),
+            JSON.stringify(updatedForm),
             oldValues.id.toString()
         );
         res.status(201).json({ message: 'Form updated successfully', status: true, updatedForm });
