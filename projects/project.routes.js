@@ -1,30 +1,31 @@
 import{
-    createProject,
-    addEmployee,
-    getOrgProject,
-    getOrgProjects,
-    getEmployeeProjects,
-    getProjectEmployees,
-    getAllEmployees,
-    getProjectStats,
-    editEmployeeRole,
-    removeEmployee,
-    updateProject,
-    exportProject,
-    deleteProject
+  createProject,
+  addEmployee,
+  getOrgProject,
+  getOrgProjects,
+  getEmployeeProjects,
+  getProjectEmployees,
+  getAllEmployees,
+  getProjectStats,
+  editEmployeeRole,
+  removeEmployee,
+  updateProject,
+  exportProject,
+  deleteProject
 } from './project.controller.js';
+import { getCurrentEmployee } from "../middleware/getCurrentEmployee.js";
 import { 
 checkOrganizationExists 
 } from '../organizations/organizations.middleware.js';
 import {
-  
-  verifyUser
+
+verifyUser
 } from "../middleware/authenticate.js";
 import express from "express";
 
 const projectRouter = express.Router({ mergeParams: true });
 
-projectRouter.use('/:orgId', checkOrganizationExists);
+projectRouter.use('/:orgId', checkOrganizationExists, getCurrentEmployee);
 
 projectRouter.post('/:orgId/project/create', createProject);
 projectRouter.post('/:orgId/project/adduser/:projectId', addEmployee);
