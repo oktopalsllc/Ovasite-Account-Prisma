@@ -16,8 +16,7 @@ const createSubmission = asyncHandler(async(req, res, next) => {
         const orgId = req.params.orgId;
         const { formValues, formInfo, location } = req.body;
         const { formId } = formInfo;
-        const parsedFormId = JSON.parse(formId);
-        const { latitude, longitude } = JSON.parse(location);
+        const { latitude, longitude } = location;
         const geoData = await axios.get(`https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`);
         const geoDataString = JSON.stringify(geoData.data);
         const form = await prisma.form.Update({
@@ -27,7 +26,7 @@ const createSubmission = asyncHandler(async(req, res, next) => {
                 },
             },
             where: {
-                id: parsedFormId,
+                id: formId,
                 published: true
             }
         });
@@ -65,7 +64,7 @@ const createSubmission = asyncHandler(async(req, res, next) => {
 // Get submission by its id
 const getSubmission = asyncHandler(async(req, res, next) => {
     try{
-        const { id } = req.params.submissionId;
+        const { submissionId } = req.params;
         const submission = await prisma.submission.findUnique({
             include:{
                 employee: true,
@@ -74,7 +73,7 @@ const getSubmission = asyncHandler(async(req, res, next) => {
                 project: true
             },
             where: {
-                id: id
+                id: submissionId
             },
         });
         if(!submission) throw new NotFoundError('Submission not found');
