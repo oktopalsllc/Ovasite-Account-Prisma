@@ -20,21 +20,29 @@ const createSubmission = asyncHandler(async(req, res, next) => {
         const { latitude, longitude } = JSON.parse(location);
         const geoData = await axios.get(`https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`);
         const geoDataString = JSON.stringify(geoData.data);
-        const form = await prisma.form.findUnique({
+        const form = await prisma.form.Update({
+            data: {
+                subCount: {
+                  increment: 1,
+                },
+            },
             where: {
                 id: parsedFormId,
+                published: true
             }
         });
+        if(!form) throw new NotFoundError('Form not found');
         const newSubmission = await prisma.submission.create({
             data: {
                 title: form.title,
                 description: form.description,
                 submissionData: formValues,
+                formData: form.formData,
                 geolocation: geoDataString,
                 employee: {connect:{id: req.employeedId}},
-                organizationId: orgId,
-                formId: parsedFormId,
-                projectId: form.projectId
+                organization: {connect:{id: orgIdd}},
+                formId: {connect:{id: parsedFormId},
+                projectId: {connect:{id: form.projectId}}},
             },
         });
         await createAuditLog(
@@ -196,9 +204,10 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
 
         // Parse the JSON data in submissionData
         const submissionData = JSON.parse(submission.submissionData);
+        const geoData = JSON.parse(submission.geolocation);
 
         // Extract the specified fields
-        const { id, title, description, geolocation, creatorId, organizationId, formId, projectId } = submission;
+        const { id, title, description, creatorId, organizationId, formId, projectId } = submission;
 
         // Define CSV header and records
         const csvWriter = new createObjectCsvWriter({
@@ -207,7 +216,6 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
                 { id: 'id', title: 'ID' },
                 { id: 'title', title: 'Title' },
                 { id: 'description', title: 'Description' },
-                { id: 'geolocation', title: 'Geolocation' },
                 { id: 'creatorId', title: 'Creator ID' },
                 { id: 'organizationId', title: 'Organization ID' },
                 { id: 'formId', title: 'Form ID' },
@@ -220,11 +228,11 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
                 id,
                 title,
                 description,
-                geolocation,
                 creatorId,
                 organizationId,
                 formId,
                 projectId,
+                ...geoData,
                 ...submissionData 
             }
         ];
