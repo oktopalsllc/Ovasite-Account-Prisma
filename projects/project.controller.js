@@ -175,6 +175,33 @@ const getProjectEmployees = asyncHandler(async (req, res, next) => {
     }
 });
 
+// Get non associated employees
+const getAllEmployees = asyncHandler(async (req, res) => {
+    try {        
+        const { orgId, projectId } = req.params;
+        const employees = await prisma.employee.findMany({
+            where: {
+                organizationId: orgId,
+                // Exclude employees who have an association with the specified projectId
+                projectAssociations: {
+                    none: {
+                        projectId: projectId,
+                    },
+                },
+            },
+            select: {
+                id: true,
+                fullName: true,                
+            }
+        });
+
+        res.status(200).json(employees);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Get project stats
 const getProjectStats = asyncHandler(async (req, res, next) => {
     try {
         const projectId = req.projectId;
@@ -430,6 +457,7 @@ export {
     addEmployee,
     getOrgProject,
     getOrgProjects,
+    getAllEmployees,
     getEmployeeProjects,
     getProjectEmployees,
     getProjectStats,
