@@ -29,9 +29,17 @@ const createProject = asyncHandler(async (req, res, next) => {
                 status,
                 startDate,
                 endDate,
-                organizationId: orgId
+                organization: {connect: {id: orgId}},
+                creator: {connect: {id: req.employeeId}}
             },
         });
+        const projectAssociaton = await prisma.employeeProjectAssociation.create({
+            data: {
+                employee: {connect: {id: req.employeeId}},
+                project: {connect:{id: newProject.id}},
+                role: 'ADMIN'
+            },            
+        })
         await createAuditLog(
             req.user.email,
             req.ip || null,
@@ -41,6 +49,16 @@ const createProject = asyncHandler(async (req, res, next) => {
             '',
             JSON.stringify(newProject),
             newProject.id.toString()
+        );
+        await createAuditLog(
+            req.user.email,
+            req.ip || null,
+            orgId,
+            'create',
+            'EmployeeProjectAssociation',
+            '',
+            JSON.stringify(projectAssociaton),
+            projectAssociaton.id.toString()
         );
         res.status(201).json({ message: 'Project created successfully', status: true, newProject });
     }
