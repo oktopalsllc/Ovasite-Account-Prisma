@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ProjectRole } from '@prisma/client';
 import asyncHandler from 'express-async-handler';
 import {
     NotFoundError,
@@ -37,7 +37,7 @@ const createProject = asyncHandler(async (req, res, next) => {
             data: {
                 employee: {connect: {id: req.employeeId}},
                 project: {connect:{id: newProject.id}},
-                role: 'ADMIN'
+                role: 'MANAGER'
             },            
         })
         await createAuditLog(
