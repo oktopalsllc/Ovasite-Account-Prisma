@@ -88,6 +88,7 @@ model Employee {
   organization        Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user                User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
   projectAssociations EmployeeProjectAssociation[]
+  projects            Project[]
   forms               Form[]
   reports             Report[]
   submissions         Submission[]
@@ -116,22 +117,25 @@ model Invite {
 model Project {
   id                  String                       @id @default(cuid())
   name                String
+  image               String?
   description         String
   expectedDuration    String
   status              String
   isCompleted         Boolean                      @default(false)
   startDate           DateTime
   endDate             DateTime
+  creatorId           String?
   organizationId      String
   createdAt           DateTime                     @default(now())
   updatedAt           DateTime                     @updatedAt
   projectAssociations EmployeeProjectAssociation[]
   forms               Form[]
+  creator             Employee?                     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   organization        Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   reports             Report[]
   submissions         Submission[]
 
-  @@index([organizationId])
+  @@index([organizationId, creatorId])
 }
 
 model EmployeeProjectAssociation {
