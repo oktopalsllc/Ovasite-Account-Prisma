@@ -28,7 +28,7 @@ const createReport = asyncHandler(async(req, res, next) => {
         });
         await createAuditLog(
             req.employeeId, 
-            req.ip.address() || null, 
+            req.ip.toString() || null, 
             orgId,
             'create',
             'Report',
@@ -135,7 +135,7 @@ const updateReport = asyncHandler(async(req, res, next) => {
         if(!updatedReport) throw new NotFoundError('Report found');
         await createAuditLog(
             req.employeeId, 
-            req.ip.address() || null, 
+            req.ip.toString() || null, 
             orgId,
             'update',
             'Report',
@@ -166,7 +166,7 @@ const deleteReport = asyncHandler(async(req, res, next) => {
         if(!deletedReport) throw new NotFoundError('Report found');
         await createAuditLog(
             req.employeeId, 
-            req.ip.address() || null, 
+            req.ip.toString() || null, 
             orgId,
             'delete',
             'Report',

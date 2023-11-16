@@ -46,7 +46,7 @@ const createSubmission = asyncHandler(async(req, res, next) => {
         });
         await createAuditLog(
             req.employeeId, 
-            req.ip.address() || null, 
+            req.ip.toString() || null, 
             orgId,
             'create',
             'Submission',
@@ -171,7 +171,7 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
         if(!updatedSubmission) throw new NotFoundError('Submission not found');
         await createAuditLog(
             req.employeeId, 
-            req.ip.address() || null, 
+            req.ip.toString() || null, 
             orgId,
             'update',
             'Submission',
@@ -261,7 +261,7 @@ const deleteSubmission = asyncHandler(async(req, res, next) => {
         if(!deletedSubmission) throw new NotFoundError('Submission not found');
         await createAuditLog(
             req.employeeId, 
-            req.ip.address() || null, 
+            req.ip.toString() || null, 
             orgId,
             'delete',
             'Submission',
