@@ -222,7 +222,7 @@ const getAllEmployees = asyncHandler(async (req, res) => {
 // Get project stats
 const getProjectStats = asyncHandler(async (req, res, next) => {
     try {
-        const projectId = req.projectId;
+        const {projectId} = req.params;
         const reports = await prisma.report.findMany({
             where: {
                 projectId
