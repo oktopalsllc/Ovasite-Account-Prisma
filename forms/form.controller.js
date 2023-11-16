@@ -22,7 +22,7 @@ const createForm = asyncHandler(async (req, res, next) => {
             },
         });
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'create',
@@ -164,7 +164,7 @@ const publishForm = asyncHandler(async (req, res, next) => {
         });
         if (!publishedForm) throw new NotFoundError('Form not found');
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'publish',
@@ -203,7 +203,7 @@ const updateFormData = asyncHandler(async (req, res, next) => {
         });
         if (!updatedForm) throw new NotFoundError('Form does not exist');
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'update',
@@ -241,7 +241,7 @@ const updateForm = asyncHandler(async (req, res, next) => {
         });
         if (!updatedForm) throw new NotFoundError('Form does not exist');
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'update',
@@ -268,7 +268,7 @@ const deleteForm = asyncHandler(async (req, res, next) => {
         });
         if (!deletedForm) throw new NotFoundError('Form does not exist');
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'delete',

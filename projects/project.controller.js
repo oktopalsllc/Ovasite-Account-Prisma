@@ -41,7 +41,7 @@ const createProject = asyncHandler(async (req, res, next) => {
             },            
         })
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'create',
@@ -51,7 +51,7 @@ const createProject = asyncHandler(async (req, res, next) => {
             newProject.id.toString()
         );
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'create',
@@ -92,7 +92,7 @@ const addEmployee = asyncHandler(async (req, res, next) => {
             },
         });
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'create',
@@ -290,7 +290,7 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
         if (!updatedRole) throw new NotFoundError('Employee does not exist in this project');
 
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'update',
@@ -318,7 +318,7 @@ const removeEmployee = asyncHandler(async (req, res, next) => {
         });
         if (!deletedAssociation) throw new NotFoundError('Employee does not exist in this project');
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'delete',
@@ -373,7 +373,7 @@ const updateProject = asyncHandler(async (req, res, next) => {
         });
         if (!updatedProject) throw new NotFoundError('Project not found');
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'update',
@@ -453,7 +453,7 @@ const deleteProject = asyncHandler(async (req, res, next) => {
         });
         if (!deletedProject) throw new NotFoundError('Project not found');
         await createAuditLog(
-            req.user.email,
+            req.employeeId,
             req.ip.address() || null,
             orgId,
             'delete',
