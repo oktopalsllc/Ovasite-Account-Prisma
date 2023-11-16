@@ -38,7 +38,7 @@ const createSubscription = asyncHandler(async (req, res, next) => {
         });
         await createAuditLog(
             req.user.email,
-            req.ip || null,
+            req.ip.toString() || null,
             orgId,
             'create',
             'Subscription',
@@ -115,7 +115,7 @@ const updateSubscription = asyncHandler(async (req, res, next) => {
         if(!updatedSubscription) throw new NotFoundError('Subscription not found');
         await createAuditLog(
             req.user.email,
-            req.ip || null,
+            req.ip.toString() || null,
             orgId,
             'update',
             'Subscription',
@@ -142,7 +142,7 @@ const deleteSubscription = asyncHandler(async (req, res, next) => {
         if(!deletedSubscription) throw new NotFoundError('Subscription not found');
         await createAuditLog(
             req.user.email,
-            req.ip || null,
+            req.ip.toString() || null,
             orgId,
             'delete',
             'Subscription',
@@ -179,7 +179,7 @@ const createPrice = asyncHandler(async (req, res, next) => {
         });
         await createAuditLog(
             req.user.email,
-            req.ip || null,
+            req.ip.toString() || null,
             orgId,
             'create',
             'Price',
@@ -234,7 +234,7 @@ const updatePrice = asyncHandler(async (req, res, next) => {
         if(!updatedPrice) throw new NotFoundError('Price not found');
         await createAuditLog(
             req.user.email,
-            req.ip || null,
+            req.ip.toString() || null,
             orgId,
             'update',
             'Price',
