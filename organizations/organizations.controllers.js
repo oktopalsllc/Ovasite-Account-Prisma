@@ -1,7 +1,7 @@
 import { EmployeeRole, PrismaClient } from "@prisma/client";
 import asyncHandler from "express-async-handler";
 import ShortUniqueId from "short-unique-id";
-import { addNewCustomer } from '../helpers/stripe.js';
+import { addNewCustomer } from "../helpers/stripe.js";
 
 const prisma = new PrismaClient();
 // TODO: transfer ownership of organizations to employee within the organization
@@ -10,10 +10,23 @@ const { randomUUID } = new ShortUniqueId({ length: 10 });
 
 // Create a new organization
 const createOrganization = asyncHandler(async (req, res) => {
-  const { name, logo, orgEmail, address} = req.body;
+  const { name} = req.body;
   const { id: userId, email } = req.user;
-  const lowercaseEmail = orgEmail.toLowerCase();
+  const lowercaseEmail = email.toLowerCase();
   try {
+
+    
+    // Check if a user with the provided email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: lowercaseEmail },
+    });
+
+    if (!existingUser) {
+      return res
+        .status(400)
+        .json({ error: `User with email ${lowercaseEmail} already exists.` });
+    }
+
     // Check if an organization with the same name already exists
     const existingOrganization = await prisma.organization.findFirst({
       where: { name },
@@ -25,37 +38,22 @@ const createOrganization = asyncHandler(async (req, res) => {
         .json({ error: `organization name ${name} already exists.` });
     }
 
-    // Check if a user with the provided email already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const stripeCustomer = await addNewCustomer(lowercaseEmail);
 
     // Create a new organization with the provided data
     const newOrganization = await prisma.organization.create({
       data: {
         name: name,
-        email: lowercaseEmail,
-        logo: logo || null,
-        address: address || null,
         inviteCode: randomUUID(),
+        stripeCustomerId: stripeCustomer.id,
         userId,
       },
     });
 
-    const stripeCustomer = await addNewCustomer(lowercaseEmail);
-      await prisma.organization.update({
-        where: {
-          email: lowercaseEmail,
-        },
-        data:{
-          stripeCustomerId: stripeCustomer.id
-        }
-      });
-
     // Create a new employee associated with the user who created the organization
     const newEmployee = await prisma.employee.create({
       data: {
-        email: email,
+        email: lowercaseEmail,
         role: EmployeeRole.OWNER,
         user: { connect: { id: userId } },
         organization: { connect: { id: newOrganization.id } },
@@ -178,7 +176,6 @@ const deleteOrganization = asyncHandler(async (req, res) => {
   }
 });
 
-
 const getOrganizationOwners = asyncHandler(async (req, res) => {
   try {
     const employees = await prisma.employee.findMany({
@@ -196,8 +193,8 @@ const getOrganizationOwners = asyncHandler(async (req, res) => {
 export {
   createOrganization,
   deleteOrganization,
-  getUserOrganizations,
   getOrganizationById,
+  getOrganizationOwners,
+  getUserOrganizations,
   updateOrganization,
-  getOrganizationOwners
 };
