@@ -15,7 +15,8 @@ import {
   formRouter,
   submissionRouter,
   reportRouter,
-  auditRouter
+  auditRouter,
+  subscriptionRouter
 } from "./localImport.js";
 dotenv.config();
 
@@ -25,7 +26,20 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000", 
+      "http://localhost:3001", 
+      "http://localhost:3002", 
+      "http://localhost:3003", 
+      "https://ovasite.vercel.app", 
+      "https://ovasiteapp.vercel.app"
+    ],
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
+    credentials: true
+  })
+);
 // app.use(csurf({ cookie: true }));
 // app.use(helmet());
 
@@ -50,6 +64,7 @@ app.use(`${basePath}/orgs`, formRouter);
 app.use(`${basePath}/orgs`, submissionRouter);
 app.use(`${basePath}/orgs`, reportRouter);
 app.use(`${basePath}/orgs`, auditRouter);
+app.use(`${basePath}/orgs`, subscriptionRouter);
 
 //Connect to the database before listening
 const PORT = process.env.PORT || process.env.API_PORT;

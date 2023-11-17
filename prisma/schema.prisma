@@ -8,14 +8,15 @@ datasource db {
 }
 
 model User {
-  id                 String    @id @default(cuid())
-  email              String    @unique
-  password           String
-  phoneNumber        String?
-  role               UserRole  @default(USER)
-  source             Source    @default(OTHER)
-  passwordResetToken String?
-  passwordResetAt    DateTime?
+  id                     String    @id @default(cuid())
+  email                  String    @unique   
+  password               String?
+  phoneNumber            String?
+  role                   UserRole  @default(USER)
+  source                 Source    @default(OTHER)
+  passwordResetToken     String?
+  passwordResetAt        DateTime?
+  refreshToken          String?
 
   employees     Employee[]
   organizations Organization[]
@@ -24,19 +25,26 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
-enum UserRole {
-  USER
-  ADMIN
-  OWNER
+model Subscription {
+  id                  String  @id @default(cuid())
+  name                String  @unique
+  slug                String
+  numberOfOrgs        String
+  numberOfEmployees   String
+  numberOfProjects    String
+  numberOfForms       String
+  numberOfSubmissions String
+  offlineSubmission   Boolean @default(true)
+  price               Price?
 }
 
-enum Source {
-  FACEBOOK
-  TWITTER
-  INSTAGRAM
-  LINKEDIN
-  GOOGLE
-  OTHER
+model Price {
+  id             String       @id @default(cuid())
+  amount         Int
+  testId         String?
+  productionId   String?
+  subscriptionId String       @unique
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 }
 
 model Organization {
@@ -47,6 +55,10 @@ model Organization {
   inviteCode  String       @unique
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?   @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
   employees   Employee[]
   forms       Form[]
   invite      Invite[]
@@ -75,6 +87,7 @@ model Employee {
   organization        Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user                User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
   projectAssociations EmployeeProjectAssociation[]
+  projects            Project[]
   forms               Form[]
   reports             Report[]
   submissions         Submission[]
@@ -84,7 +97,7 @@ model Employee {
 }
 
 model Invite {
-  id             String       @id @default(uuid())
+  id             String       @id @default(cuid())
   token          String
   email          String
   inviteCode     String?
@@ -101,44 +114,50 @@ model Invite {
 }
 
 model Project {
-  id                  String                       @id @default(uuid())
+  id                  String                       @id @default(cuid())
   name                String
+  image               String?
   description         String
   expectedDuration    String
   status              String
   isCompleted         Boolean                      @default(false)
   startDate           DateTime
   endDate             DateTime
+  creatorId           String?
   organizationId      String
   createdAt           DateTime                     @default(now())
   updatedAt           DateTime                     @updatedAt
   projectAssociations EmployeeProjectAssociation[]
   forms               Form[]
+  creator             Employee?                     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   organization        Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   reports             Report[]
   submissions         Submission[]
 
-  @@index([organizationId])
+  @@index([organizationId, creatorId])
 }
 
 model EmployeeProjectAssociation {
-  id         String   @id @default(uuid())
+  id         String      @id @default(cuid())
   employeeId String
   projectId  String
-  role       String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role       ProjectRole @default(FIELD_AGENT)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([employeeId, projectId])
 }
 
 model Form {
-  id             String       @id @default(uuid())
+  id             String       @id @default(cuid())
   title          String
-  formData       String
-  description    String
+  formData       String       @default("[]")
+  description    String       @default("")
+  published      Boolean      @default(false)
+  visits         Int          @default(0)
+  subCount       Int          @default(0)
   creatorId      String
   organizationId String
   projectId      String
@@ -147,27 +166,25 @@ model Form {
   employee       Employee     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  reports        Report[]
   submissions    Submission[]
 
   @@index([projectId, creatorId, organizationId])
 }
 
 model Submission {
-  id             String  @id @default(uuid())
+  id             String  @id @default(cuid())
   title          String
   description    String
   submissionData String
-  geolocation    String?
-
+  geolocation    String?  
+  formData       String?
   creatorId      String
-  employee       Employee @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  employee       Employee     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   organizationId String
   formId         String
   projectId      String
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  reports        Report[]
   form           Form         @relation(fields: [formId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -176,23 +193,33 @@ model Submission {
 }
 
 model Report {
-  id             String       @id @default(uuid())
+  id             String   @id @default(cuid())
   title          String
   reportData     String
   creatorId      String
   organizationId String
-  formId         String
-  submissionId   String
   projectId      String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  employee       Employee     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  form           Form         @relation(fields: [formId], references: [id])
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  submission     Submission   @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  employee       Employee @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
-  @@index([formId, projectId, creatorId, submissionId, organizationId])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, creatorId, organizationId])
+}
+
+model Audit {
+  id        String   @id @default(cuid())
+  userMail  String
+  ipAddress String?
+  orgId     String
+  type      String
+  tableName String
+  dateTime  DateTime @default(now())
+  oldValues String
+  newValues String
+  rowId     String
 }
 
 enum EmployeeRole {
@@ -202,15 +229,25 @@ enum EmployeeRole {
   GUEST
 }
 
-model Audit {
-  id            String   @id @default(uuid())
-  userMail      String
-  userIpAddress String?
-  orgId         String
-  type          String
-  tableName     String
-  dateTime      DateTime @default(now())
-  oldValues     String
-  newValues     String
-  primaryKey    String
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum Source {
+  OTHER
+  FACEBOOK
+  TWITTER
+  INSTAGRAM
+  LINKEDIN
+  GOOGLE
+  FRIEND
+}
+
+enum ProjectRole {
+  SUPERVISOR
+  FIELD_AGENT
+  GUEST
+  MANAGER
 }

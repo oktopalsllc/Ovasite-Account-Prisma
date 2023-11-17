@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ProjectRole } from '@prisma/client';
 import asyncHandler from 'express-async-handler';
-import { 
-    ForbiddenError, 
-    NotFoundError, 
-    InternalServerError 
+import {
+    NotFoundError,
+    InternalServerError
 } from '../middleware/errors.js';
 import { createObjectCsvWriter } from 'csv-writer';
 import { createAuditLog } from '../helpers/auditHelper.js';
@@ -12,17 +11,14 @@ const prisma = new PrismaClient();
 
 // Creates a new project
 const createProject = asyncHandler(async (req, res, next) => {
-    try{
+    try {
         const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not allowed to create a project for this organization');
-        }
-        const { 
-            name, 
-            description, 
-            expectedDuration, 
-            status, 
-            startDate, 
+        const {
+            name,
+            description,
+            expectedDuration,
+            status,
+            startDate,
             endDate
         } = req.body;
         const newProject = await prisma.project.create({
@@ -33,12 +29,20 @@ const createProject = asyncHandler(async (req, res, next) => {
                 status,
                 startDate,
                 endDate,
-                orgId
+                organization: {connect: {id: orgId}},
+                creator: {connect: {id: req.employeeId}}
             },
-        });        
+        });
+        const projectAssociaton = await prisma.employeeProjectAssociation.create({
+            data: {
+                employee: {connect: {id: req.employeeId}},
+                project: {connect:{id: newProject.id}},
+                role: 'MANAGER'
+            },            
+        })
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.employeeId,
+            req.ip.address || null,
             orgId,
             'create',
             'Project',
@@ -46,21 +50,27 @@ const createProject = asyncHandler(async (req, res, next) => {
             JSON.stringify(newProject),
             newProject.id.toString()
         );
-        res.json({message: 'Project created successfully', status: true, newProject});
+        await createAuditLog(
+            req.employeeId,
+            req.ip.address || null,
+            orgId,
+            'create',
+            'EmployeeProjectAssociation',
+            '',
+            JSON.stringify(projectAssociaton),
+            projectAssociaton.id.toString()
+        );
+        res.status(201).json({ message: 'Project created successfully', status: true, newProject });
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Associates an employee with a project
 const addEmployee = asyncHandler(async (req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const projectId = req.params.projectId;
+    try {
+        const { orgId, projectId } = req.params;
         const { employeeId, role } = req.body;
         const empExists = await prisma.employee.findUnique({
             where: {
@@ -72,8 +82,8 @@ const addEmployee = asyncHandler(async (req, res, next) => {
                 id: projectId
             },
         });
-        if(!empExists) throw new NotFoundError('Employee does not exist');
-        if(!projExists) throw new NotFoundError(`Project ${projectId} does not exist`);
+        if (!empExists) throw new NotFoundError('Employee does not exist');
+        if (!projExists) throw new NotFoundError(`Project ${projectId} does not exist`);
         const newAssociation = await prisma.employeeProjectAssociation.create({
             data: {
                 employeeId,
@@ -82,8 +92,8 @@ const addEmployee = asyncHandler(async (req, res, next) => {
             },
         });
         await createAuditLog(
-            req.user.email, 
-            req.ip || null,  
+            req.employeeId,
+            req.ip.address || null,
             orgId,
             'create',
             'ProjectAssociation',
@@ -91,86 +101,83 @@ const addEmployee = asyncHandler(async (req, res, next) => {
             JSON.stringify(newAssociation),
             newAssociation.id.toString()
         );
-        res.json({message: 'Employee added successfully', status: true, newAssociation});
+        res.status(201).json({ message: 'Employee added successfully', status: true, newAssociation });
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Gets a project created by an organization by its id
 const getOrgProject = asyncHandler(async (req, res, next) => {
-    try{
-        const { orgId, id } = req.params;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
+    try {
+        const { orgId, projectId } = req.params;
         const project = await prisma.project.findUnique({
+            include: {
+                forms: true,
+                submissions: true,
+                reports: true,
+                projectAssociations: true
+            },
             where: {
-                id: id,
+                id: projectId,
                 organizationId: orgId
             },
         });
-        if(!project) throw new NotFoundError('Project not found');
-        res.json(project);
+        if (!project) throw new NotFoundError('Project not found');
+        res.status(201).json(project);
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Gets list of projects created by an organization
 const getOrgProjects = asyncHandler(async (req, res) => {
-    try{
+    try {
         const { orgId } = req.params;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const projects = await prisma.project.findMany({
+            include: {
+                submissions: true,
+                projectAssociations: true,
+                organization: true,
+                forms: true,
+                reports: true
+            },
             where: {
                 organizationId: orgId
             },
         });
-        if(projects.length === 0) throw new NotFoundError('No projects found');
-        res.json(projects);
+        res.status(201).json(projects);
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Gets list of projects associated with an employee
 const getEmployeeProjects = asyncHandler(async (req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { employeeId } = req.params.empId;
+    try {
+        const { empId } = req.params;
         const projects = await prisma.employeeProjectAssociation.findMany({
             where: {
-                employeeId: employeeId
+                employeeId: empId
             },
             include: {
                 project: true,
             },
         });
-        if(projects.length === 0) throw new NotFoundError('No projects found');
-        res.json(projects);
+        res.status(201).json(projects);
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Gets a list of employees associated with an project
 const getProjectEmployees = asyncHandler(async (req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { projectId } = req.params.projectId;
+    try {
+        const { projectId } = req.params;
         const employees = await prisma.employeeProjectAssociation.findMany({
             where: {
                 projectId: projectId
@@ -179,23 +186,91 @@ const getProjectEmployees = asyncHandler(async (req, res, next) => {
                 employee: true,
             },
         });
-        if(employees.length === 0) throw new NotFoundError('No employees found');
-        res.json(employees);
+        res.status(201).json(employees);
     }
-    catch(err){
+    catch (err) {
+        next(err);
+    }
+});
+
+// Get non associated employees
+const getAllEmployees = asyncHandler(async (req, res) => {
+    try {        
+        const { orgId, projectId } = req.params;
+        const employees = await prisma.employee.findMany({
+            where: {
+                organizationId: orgId,
+                // Exclude employees who have an association with the specified projectId
+                projectAssociations: {
+                    none: {
+                        projectId: projectId,
+                    },
+                },
+            },
+            select: {
+                id: true,
+                fullName: true,                
+            }
+        });
+
+        res.status(200).json(employees);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Get project stats
+const getProjectStats = asyncHandler(async (req, res, next) => {
+    try {
+        const {projectId} = req.params;
+        const reports = await prisma.report.findMany({
+            where: {
+                projectId
+            }
+        });
+        const forms = await prisma.form.findMany({
+            where: { projectId }
+        });
+        const stats = await prisma.form.aggregate({
+            where: {
+                projectId
+            },
+            _sum: {
+                visits: true,
+                subCount: true,
+            },
+        });
+        const visits = stats._sum.visits || 0;
+        const subCount = stats._sum.subCount || 0;
+
+        let submissionRate = 0;
+
+        if (visits > 0) {
+            submissionRate = (subCount / visits) * 100;
+        }
+
+        const bounceRate = 100 - submissionRate;
+
+        const projectStats = {
+            visits: visits,
+            subCount: subCount,
+            submissionRate: submissionRate,
+            bounceRate: bounceRate,
+            reports: reports.length,
+            forms: forms.length
+        }
+        return res.status(201).json(projectStats);
+    }
+    catch (err) {
         next(err);
     }
 });
 
 // Updates the role of an employee in a project
 const editEmployeeRole = asyncHandler(async (req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
+    try {
+        const { orgId, projectId } = req.params;
         const { empId, role } = req.body;
-        const projectId = req.params.projectId;
         const oldValues = await prisma.employeeProjectAssociation.findUnique({
             where: {
                 employeed: empId,
@@ -205,17 +280,18 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
         const updatedRole = await prisma.employeeProjectAssociation.update({
             where: {
                 employeed: empId,
-                projectId: projectId
+                projectId: projectId,
+                updatedAt: new Date(),
             },
             data: {
                 role: role
             },
         });
-        if(!updatedRole) throw new NotFoundError('Employee does not exist in this project');
-        
+        if (!updatedRole) throw new NotFoundError('Employee does not exist in this project');
+
         await createAuditLog(
-            req.user.email, 
-            req.ip || null,  
+            req.employeeId,
+            req.ip.address || null,
             orgId,
             'update',
             'ProjectAssociation',
@@ -223,32 +299,27 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
             JSON.stringify(updatedRole),
             oldValues.id.toString()
         );
-        res.json({message: 'Role updated successfully', status: true, updatedRole});
+        res.status(201).json({ message: 'Role updated successfully', status: true, updatedRole });
     }
-    catch(err) {
+    catch (err) {
         next(err);
     }
 });
 
 // Remove an employee from a project
 const removeEmployee = asyncHandler(async (req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const employeeId = req.params.empId;
-        const projectId = req.params.projectId;
+    try {
+        const { orgId, empId, projectId } = req.params;
         const deletedAssociation = await prisma.employeeProjectAssociation.delete({
             where: {
-                employeeId: employeeId,
+                employeeId: empId,
                 projectId: projectId
             },
         });
-        if(!deletedAssociation) throw new NotFoundError('Employee does not exist in this project');
+        if (!deletedAssociation) throw new NotFoundError('Employee does not exist in this project');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null,  
+            req.employeeId,
+            req.ip.address || null,
             orgId,
             'delete',
             'ProjectAssociation',
@@ -256,33 +327,29 @@ const removeEmployee = asyncHandler(async (req, res, next) => {
             '',
             deletedAssociation.id.toString()
         );
-        res.json({
-            message: 'Employee removed from project successfully', 
-            status: true, 
+        res.status(201).json({
+            message: 'Employee removed from project successfully',
+            status: true,
             deletedAssociation
         });
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 });
 
 // Update a project
 const updateProject = asyncHandler(async (req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const projectId = req.params.projectId
-        const { 
-            name, 
-            description, 
-            expectedDuration, 
-            status, 
-            isCompleted, 
-            startDate, 
-            endDate 
+    try {
+        const { orgId, projectId } = req.params;
+        const {
+            name,
+            description,
+            expectedDuration,
+            status,
+            isCompleted,
+            startDate,
+            endDate
         } = req.body;
         const oldValues = await prisma.project.findUnique({
             where: {
@@ -300,13 +367,14 @@ const updateProject = asyncHandler(async (req, res, next) => {
                 status,
                 isCompleted,
                 startDate,
-                endDate
+                endDate,
+                updatedAt: new Date(),
             },
         });
-        if(!updatedProject) throw new NotFoundError('Project not found');
+        if (!updatedProject) throw new NotFoundError('Project not found');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null,  
+            req.employeeId,
+            req.ip.address || null,
             orgId,
             'update',
             'Project',
@@ -314,7 +382,7 @@ const updateProject = asyncHandler(async (req, res, next) => {
             JSON.stringify(updatedProject),
             oldValues.id.toString()
         );
-        res.json({message: 'Project updated successfully', status: true, updatedProject});
+        res.status(201).json({ message: 'Project updated successfully', status: true, updatedProject });
     }
     catch (err) {
         next(err);
@@ -323,34 +391,30 @@ const updateProject = asyncHandler(async (req, res, next) => {
 
 // Exports a project data in json format
 const exportProject = asyncHandler(async (req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { id } = req.params.projectId;
+    try {
+        const { projectId } = req.params;
         const project = await prisma.project.findUnique({
             where: {
-                id: id
+                id: projectId
             },
         });
-        if(!project) throw new NotFoundError('Project not found');
+        if (!project) throw new NotFoundError('Project not found');
 
         const csvWriter = new createObjectCsvWriter({
             path: 'project.csv', // Set the desired file name
             header: [ // Define the CSV header
-                {id: 'id', title: 'ID'},
-                {id: 'orgId', title: 'Organization ID'},
-                {id: 'name', title: 'Name'},
-                {id: 'description', title: 'Description'},
-                {id: 'expectedDuration', title: 'Expected Duration'},
-                {id: 'status', title: 'Status'},
-                {id: 'isCompleted', title: 'Is Completed?'},
-                {id: 'startDate', title: 'Start Date'},
-                {id: 'endDate', title: 'End Date'},
+                { id: 'id', title: 'ID' },
+                { id: 'orgId', title: 'Organization ID' },
+                { id: 'name', title: 'Name' },
+                { id: 'description', title: 'Description' },
+                { id: 'expectedDuration', title: 'Expected Duration' },
+                { id: 'status', title: 'Status' },
+                { id: 'isCompleted', title: 'Is Completed?' },
+                { id: 'startDate', title: 'Start Date' },
+                { id: 'endDate', title: 'End Date' },
             ]
         });
-    
+
         const records = [
             {
                 id: project.id,
@@ -366,12 +430,12 @@ const exportProject = asyncHandler(async (req, res, next) => {
         ];
 
         csvWriter.writeRecords(records)       // returns a promise
-        .then(() => {
-            res.download('project.csv');   // Send the CSV file as a response
-        })
-        .catch((error) => {
-            throw new InternalServerError(error);
-        });
+            .then(() => {
+                res.download('project.csv');   // Send the CSV file as a response
+            })
+            .catch((error) => {
+                throw new InternalServerError(error);
+            });
     }
     catch (err) {
         next(err);
@@ -380,21 +444,17 @@ const exportProject = asyncHandler(async (req, res, next) => {
 
 // Delete a project
 const deleteProject = asyncHandler(async (req, res, next) => {
-    try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { id } = req.params.projectId;
+    try {
+        const { orgId, projectId } = req.params;
         const deletedProject = await prisma.project.delete({
             where: {
-                id: id
+                id: projectId
             },
         });
-        if(!deletedProject) throw new NotFoundError('Project not found');
+        if (!deletedProject) throw new NotFoundError('Project not found');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null,  
+            req.employeeId,
+            req.ip.address || null,
             orgId,
             'delete',
             'Project',
@@ -402,7 +462,7 @@ const deleteProject = asyncHandler(async (req, res, next) => {
             '',
             deletedProject.id.toString()
         );
-        res.json({message: 'Project deleted', status: true, deletedProject});
+        res.status(201).json({ message: 'Project deleted', status: true, deletedProject });
     }
     catch (err) {
         next(err);
@@ -415,8 +475,10 @@ export {
     addEmployee,
     getOrgProject,
     getOrgProjects,
+    getAllEmployees,
     getEmployeeProjects,
     getProjectEmployees,
+    getProjectStats,
     editEmployeeRole,
     removeEmployee,
     updateProject,

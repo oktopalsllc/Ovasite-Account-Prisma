@@ -1,12 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import asyncHandler from "express-async-handler";
 import { 
-    ForbiddenError, 
     NotFoundError,
     InternalServerError
 } from '../middleware/errors.js';
 import { createObjectCsvWriter } from 'csv-writer';
 import { createAuditLog } from '../helpers/auditHelper.js';
+import axios from 'axios';
 
 const prisma = new PrismaClient();
 
@@ -14,33 +14,39 @@ const prisma = new PrismaClient();
 const createSubmission = asyncHandler(async(req, res, next) => {
     try{
         const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not allowed to create a submission for this organization');
-        }
-        const { 
-            title, 
-            description, 
-            submissionData, 
-            geolocation, 
-            creatorId, 
-            formId, 
-            projectId 
-        } = req.body;
+        const { formValues, formInfo, location } = req.body;
+        const { formId } = formInfo;
+        const { latitude, longitude } = location;
+        const geoData = await axios.get(`https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`);
+        const geoDataString = JSON.stringify(geoData.data);
+        const form = await prisma.form.Update({
+            data: {
+                subCount: {
+                  increment: 1,
+                },
+            },
+            where: {
+                id: formId,
+                published: true
+            }
+        });
+        if(!form) throw new NotFoundError('Form not found');
         const newSubmission = await prisma.submission.create({
             data: {
-                title,
-                description,
-                submissionData,
-                geolocation,
-                creatorId,
-                orgId,
-                formId,
-                projectId
+                title: form.title,
+                description: form.description,
+                submissionData: formValues,
+                formData: form.formData,
+                geolocation: geoDataString,
+                employee: {connect:{id: req.employeedId}},
+                organization: {connect:{id: orgIdd}},
+                formId: {connect:{id: parsedFormId},
+                projectId: {connect:{id: form.projectId}}},
             },
         });
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.employeeId, 
+            req.ip.address || null, 
             orgId,
             'create',
             'Submission',
@@ -48,7 +54,7 @@ const createSubmission = asyncHandler(async(req, res, next) => {
             JSON.stringify(newSubmission),
             newSubmission.id.toString()
         );
-        res.json({message: 'Submission created successfully', status: true, newSubmission});
+        res.status(201).json({message: 'Submission created successfully', status: true, newSubmission});
     }
     catch(err){
         next(err);
@@ -58,18 +64,20 @@ const createSubmission = asyncHandler(async(req, res, next) => {
 // Get submission by its id
 const getSubmission = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { id } = req.params.submissionId;
+        const { submissionId } = req.params;
         const submission = await prisma.submission.findUnique({
+            include:{
+                employee: true,
+                form: true,
+                organization: true,
+                project: true
+            },
             where: {
-                id: id
+                id: submissionId
             },
         });
         if(!submission) throw new NotFoundError('Submission not found');
-        res.json(submission);
+        res.status(201).json(submission);
     }
     catch(err){
         next(err);
@@ -79,17 +87,16 @@ const getSubmission = asyncHandler(async(req, res, next) => {
 // Get submissions by project id
 const getSubmissions = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { projectId } = req.params.projectId;
+        const { projectId } = req.params;
         const submissions = await prisma.submission.findMany({
+            include:{
+                employee: true,
+                form: true,
+            },
             where: {
                 projectId: projectId
             },
         });
-        if(submissions.length === 0) throw new NotFoundError('No submissions found for this form');
         res.json(submissions);
     }
     catch(err){
@@ -100,18 +107,17 @@ const getSubmissions = asyncHandler(async(req, res, next) => {
 // Get submissions by form id
 const getFormSubmissions = asyncHandler(async(req, res, next) => {
     try{ 
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { formId } = req.params.formId;
+        const { formId } = req.params;
         const submissions = await prisma.submission.findMany({
+            include:{
+                employee: true,
+                project: true
+            },
             where: {
                 formId: formId
             },
         });
-        if(submissions.length === 0) throw new NotFoundError('No submissions found for this form');
-        res.json(submissions);
+        res.status(201).json(submissions);
     }
     catch(err){
         next(err);
@@ -121,21 +127,19 @@ const getFormSubmissions = asyncHandler(async(req, res, next) => {
 // Get submissions by employee
 const getEmployeeSubmissions = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const creatorId  = req.params.employeeId;
-        const projectId = req.params.projectId;
+        const {orgId, employeeId, projectId} = req.params;
         const submissions = await prisma.submission.findMany({
+            include:{
+                project: true,
+                form: true
+            },
             where: {
-                creatorId: creatorId,
+                creatorId: employeeId,
                 organizationId: orgId,
                 projectId: projectId
             },
         });
-        if(submissions.length === 0) throw new NotFoundError('No submissions found for this form');
-        res.json(submissions);
+        res.status(201).json(submissions);
     }
     catch(err){
         next(err);
@@ -145,15 +149,11 @@ const getEmployeeSubmissions = asyncHandler(async(req, res, next) => {
 // Update submission
 const updateSubmission = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const id = req.params.submissionId;
+        const {orgId, submissionId} = req.params;
         const { title, description, submissionData, geolocation } = req.body;
         const oldValues = await prisma.submission.findUnique({
             where: {
-                id: id,
+                id: submissionId,
             },
         });
         const updatedSubmission = await prisma.submission.update({
@@ -164,13 +164,14 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
                 title,
                 description,
                 submissionData,
-                geolocation
+                geolocation,
+                updatedAt: new Date(),
             },
         });
         if(!updatedSubmission) throw new NotFoundError('Submission not found');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.employeeId, 
+            req.ip.address || null, 
             orgId,
             'update',
             'Submission',
@@ -178,7 +179,7 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
             JSON.stringify(updatedSubmission),
             updatedSubmission.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Submission updated successfully',
             status:true,
             updatedSubmission
@@ -191,12 +192,8 @@ const updateSubmission = asyncHandler(async(req, res, next) => {
 
 // Export submission data
 const exportSubmission = asyncHandler(async (req, res, next) => {
-    try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { submissionId } = req.params.submissionId;
+    try{
+        const { submissionId } = req.params;
         const submission = await prisma.submission.findUnique({
             where: {
                 id: submissionId
@@ -206,9 +203,10 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
 
         // Parse the JSON data in submissionData
         const submissionData = JSON.parse(submission.submissionData);
+        const geoData = JSON.parse(submission.geolocation);
 
         // Extract the specified fields
-        const { id, title, description, geolocation, creatorId, organizationId, formId, projectId } = submission;
+        const { id, title, description, creatorId, organizationId, formId, projectId } = submission;
 
         // Define CSV header and records
         const csvWriter = new createObjectCsvWriter({
@@ -217,7 +215,6 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
                 { id: 'id', title: 'ID' },
                 { id: 'title', title: 'Title' },
                 { id: 'description', title: 'Description' },
-                { id: 'geolocation', title: 'Geolocation' },
                 { id: 'creatorId', title: 'Creator ID' },
                 { id: 'organizationId', title: 'Organization ID' },
                 { id: 'formId', title: 'Form ID' },
@@ -230,11 +227,11 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
                 id,
                 title,
                 description,
-                geolocation,
                 creatorId,
                 organizationId,
                 formId,
                 projectId,
+                ...geoData,
                 ...submissionData 
             }
         ];
@@ -255,20 +252,16 @@ const exportSubmission = asyncHandler(async (req, res, next) => {
 // Delete submission
 const deleteSubmission = asyncHandler(async(req, res, next) => {
     try{
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { id } = req.params.submissionId;
+        const {orgId, submissionId} = req.params;
         const deletedSubmission = await prisma.submission.delete({
             where: {
-                id: id
+                id: submissionId
             },
         });
         if(!deletedSubmission) throw new NotFoundError('Submission not found');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.employeeId, 
+            req.ip.address || null, 
             orgId,
             'delete',
             'Submission',
@@ -276,7 +269,7 @@ const deleteSubmission = asyncHandler(async(req, res, next) => {
             '',
             deletedSubmission.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Submission deleted successfully',
             status: true,
             deletedSubmission

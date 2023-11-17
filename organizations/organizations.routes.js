@@ -1,22 +1,20 @@
 import express from "express";
+import { verifyToken } from "../middleware/authenticate.js";
 import {
   createOrganization,
-  getAllOrganizations,
-  getOrganizationById,
-  updateOrganization,
   deleteOrganization,
+  getUserOrganizations,
+  getOrganizationById,
+  getOrganizationOwners,
+  updateOrganization,
 } from "./organizations.controllers.js";
-import {
-  verifyAdmin,
-  verifyUser,
-  verifyToken,
-} from "../middleware/authenticate.js";
 const organizationsRouter = express.Router({ mergeParams: true });
 
 organizationsRouter.use("/", verifyToken);
 
 organizationsRouter.post("/", createOrganization);
-organizationsRouter.get("/", getAllOrganizations);
+organizationsRouter.get("/", getUserOrganizations);
+organizationsRouter.get("/org-owners", getOrganizationOwners);
 organizationsRouter.get("/:id", getOrganizationById);
 organizationsRouter.patch("/:id", updateOrganization);
 organizationsRouter.delete("/:id", deleteOrganization);
