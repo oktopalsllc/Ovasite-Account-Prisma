@@ -10,12 +10,8 @@ const prisma = new PrismaClient();
 // Get all audit logs
 const getAuditLogs = asyncHandler(async (req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const logs = await prisma.audit.findMany();
-        res.json(logs);
+        res.status(201).json(logs);
     }
     catch (err) {
         next(err);
@@ -26,15 +22,18 @@ const getAuditLogs = asyncHandler(async (req, res, next) => {
 const getOrgAuditLogs = asyncHandler(async (req, res, next) => {
     try {
         const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const logs = await prisma.audit.findMany({
             where: {
                 orgId: orgId,
             },
+            select:{
+                id: true,
+                type: true,
+                tableName: true,
+                userMail: true
+            }
         });
-        res.json(logs);
+        res.status(201).json(logs);
     } 
     catch (err) {
         next(err);
@@ -44,20 +43,22 @@ const getOrgAuditLogs = asyncHandler(async (req, res, next) => {
 // Get a specific audit log
 const getAuditLog = asyncHandler(async (req, res, next) => {
     try {
-        const { orgId, id } = req.params;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
+        const { auditId } = req.params;
         const log = await prisma.audit.findUnique({
             where: {
-                id: id,
-                orgId: orgId
+                id: auditId
             },
+            select:{
+                id: true,
+                type: true,
+                tableName: true,
+                userMail: true
+            }
         });
         if (!log) {
             throw new NotFoundError('Audit log not found');
         }
-        res.json(log);
+        res.status(201).json(log);
     } 
     catch (err) {
         next(err);
@@ -68,15 +69,12 @@ const getAuditLog = asyncHandler(async (req, res, next) => {
 const deleteAuditLog = asyncHandler(async (req, res, next) => {
     try {
         const id = req.params.auditId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
         const deletedLog = await prisma.audit.delete({
             where: {
                 id: id
             },
         });
-        res.json(deletedLog);
+        res.status(201).json(deletedLog);
     } 
     catch (err) {
         next(err);
@@ -86,17 +84,14 @@ const deleteAuditLog = asyncHandler(async (req, res, next) => {
 // Delete a specific org audit log
 const deleteOrgAuditLog = asyncHandler(async (req, res, next) => {
     try {
-        const { orgId, id } = req.params;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
+        const { orgId, auditId } = req.params;
         const deletedLog = await prisma.audit.delete({
             where: {
-                id: id,
+                id: auditId,
                 orgId: orgId
             },
         });
-        res.json(deletedLog);
+        res.status(201).json(deletedLog);
     } 
     catch (err) {
         next(err);

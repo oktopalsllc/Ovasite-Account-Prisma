@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import asyncHandler from "express-async-handler";
 import { 
-    ForbiddenError, 
     NotFoundError
 } from '../middleware/errors.js';
 import { createAuditLog } from '../helpers/auditHelper.js';
@@ -13,30 +12,23 @@ const prisma = new PrismaClient();
 const createReport = asyncHandler(async(req, res, next) => {
     try {
         const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not allowed to create a report for this organization');
-        }
         const { 
             title, 
             reportData, 
-            creatorId, 
-            formId, 
-            submissionId, 
             projectId 
         } = req.body;
         const newReport = await prisma.report.create({
             data: {
                 title,
                 reportData,
-                creatorId,
-                formId,
-                submissionId,
-                projectId
+                organization: {connect:{ id: orgId}},
+                employee: {connect:{id: req.employeeId}},
+                project: {connect:{id: projectId}},
             },
         });
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.employeeId, 
+            req.ip.address || null, 
             orgId,
             'create',
             'Report',
@@ -44,7 +36,7 @@ const createReport = asyncHandler(async(req, res, next) => {
             JSON.stringify(newReport),
             newReport.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Report created successfully',
             status: true,
             newReport
@@ -58,18 +50,19 @@ const createReport = asyncHandler(async(req, res, next) => {
 // Get a report by its id
 const getReport = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { id } = req.params.reportId;
+        const { reportId } = req.params;
         const report = await prisma.report.findUnique({
+            include: {
+                project: true,
+                employee: true,
+                organization: true
+            },
             where: {
-                id: id
+                id: reportId
             },
         });
         if(!report) throw new NotFoundError('Report found');
-        res.json(report);
+        res.status(201).json(report);
     } 
     catch (err) {
         next(err);
@@ -79,18 +72,18 @@ const getReport = asyncHandler(async(req, res, next) => {
 // Get reports related to a project
 const getReports = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const { projectId } = req.params.projectId;
+        const { projectId } = req.params;
         const reports = await prisma.report.findMany({
+            include: {
+                project: true,
+                employee: true,
+                organization: true
+            },
             where: {
                 projectId: projectId
             },
         });
-        if(reports.length === 0) throw new NotFoundError('No reports found');
-        res.json(reports);
+        res.status(201).json(reports);
     } 
     catch (err) {
         next(err);
@@ -100,74 +93,49 @@ const getReports = asyncHandler(async(req, res, next) => {
 // Get reports by an employee
 const getReportsByEmployee = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const creatorId  = req.params.employeeId;
-        const projectId  = req.params.projectId;
+        const {employeeId,projectId}  = req.params;
         const reports = await prisma.report.findMany({
+            include: {
+                project: true,
+                employee: true,
+                organization: true
+            },
             where: {
-                creatorId: creatorId,
+                creatorId: employeeId,
                 projectId: projectId
             },
         });
-        if(reports.length === 0) throw new NotFoundError('No reports found');
-        res.json(reports);
+        res.status(201).json(reports);
     } 
     catch (err) {
         next(err);    
     }
 });
 
-// Get reports related to a submission
-const getSubmissionReports = asyncHandler(async(req, res, next) => {
-    try {
-        const orgId = req.params.orgId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
-        const submissionId  = req.params.submissionId;
-        const reports = await prisma.report.findMany({
-            where: {
-                submissionId: submissionId
-            },
-        });        
-        if(reports.length === 0) throw new NotFoundError('No reports found');
-        res.json(reports);
-    } 
-    catch (err) {
-        next(err);
-    }
-});
-
 // Update a report
 const updateReport = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        const id = req.params.reportId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
+        const {orgId, reportId} = req.params;
         const { title, reportData } = req.body;
         const oldValues = await prisma.report.findUnique({
             where: {
-                id: id,
+                id: reportId,
             },
         });
         const updatedReport = await prisma.report.update({
             where: {
-                id: id
+                id: reportId
             },
             data: {
                 title,
-                reportData
+                reportData,
+                updatedAt: new Date(),
             },
         });        
         if(!updatedReport) throw new NotFoundError('Report found');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.employeeId, 
+            req.ip.address || null, 
             orgId,
             'update',
             'Report',
@@ -175,7 +143,7 @@ const updateReport = asyncHandler(async(req, res, next) => {
             JSON.stringify(updatedReport),
             oldValues.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Report updated successfully',
             status: true,
             updatedReport
@@ -189,20 +157,16 @@ const updateReport = asyncHandler(async(req, res, next) => {
 // Delete a report
 const deleteReport = asyncHandler(async(req, res, next) => {
     try {
-        const orgId = req.params.orgId;
-        const id = req.params.reportId;
-        if (!req.user || req.user.organizationId !== orgId) {
-            throw new ForbiddenError('User is not within organization');
-        }
+        const {orgId, reportId} = req.params;
         const deletedReport = await prisma.report.delete({
             where: {
-                id: id
+                id: reportId
             },
         });
         if(!deletedReport) throw new NotFoundError('Report found');
         await createAuditLog(
-            req.user.email, 
-            req.ip || null, 
+            req.employeeId, 
+            req.ip.address || null, 
             orgId,
             'delete',
             'Report',
@@ -210,7 +174,7 @@ const deleteReport = asyncHandler(async(req, res, next) => {
             '',
             deletedReport.id.toString()
         );
-        res.json({
+        res.status(201).json({
             message: 'Report deleted successfully',
             status: true,
             deletedReport
@@ -226,7 +190,6 @@ export {
     getReport,
     getReports,
     getReportsByEmployee,
-    getSubmissionReports,
     updateReport,
     deleteReport
 };

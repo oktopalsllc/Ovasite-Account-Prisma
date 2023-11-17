@@ -3,23 +3,23 @@ const prisma = new PrismaClient();
 
 export async function createAuditLog(
     userMail,
-    userIpAddress,
+    ipAddress,
     orgId,
     type, 
     tableName, 
     oldValues, 
     newValues, 
-    primaryKey) {
+    rowId) {
     return await prisma.audit.create({
         data: {
             userMail,
-            userIpAddress,
+            ipAddress,
             orgId,
             type,
             tableName,
             oldValues,
             newValues,
-            primaryKey
+            rowId
         }
     });
 };
