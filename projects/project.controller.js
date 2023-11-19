@@ -342,15 +342,40 @@ const removeEmployee = asyncHandler(async (req, res, next) => {
 const updateProject = asyncHandler(async (req, res, next) => {
     try {
         const { orgId, projectId } = req.params;
-        const {
-            name,
-            description,
-            expectedDuration,
-            status,
-            isCompleted,
-            startDate,
-            endDate
-        } = req.body;
+        const oldValues = await prisma.project.findUnique({
+            where: {
+                id: projectId
+            },
+        });
+        const updatedProject = await prisma.project.update({
+            where: {
+                id: projectId
+            },
+            data: req.body,
+        });
+        if (!updatedProject) throw new NotFoundError('Project not found');
+        await createAuditLog(
+            req.employeeId,
+            req.ip.address || null,
+            orgId,
+            'update',
+            'Project',
+            JSON.stringify(oldValues),
+            JSON.stringify(updatedProject),
+            oldValues.id.toString()
+        );
+        res.status(201).json({ message: 'Project updated successfully', status: true, updatedProject });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+
+// Update project status
+const updateProjectStatus = asyncHandler(async (req, res, next) => {
+    try {
+        const { orgId, projectId } = req.params;
+        const { status, isCompleted } = req.body;
         const oldValues = await prisma.project.findUnique({
             where: {
                 id: projectId
@@ -361,17 +386,19 @@ const updateProject = asyncHandler(async (req, res, next) => {
                 id: projectId
             },
             data: {
-                name,
-                description,
-                expectedDuration,
                 status,
-                isCompleted,
-                startDate,
-                endDate,
-                updatedAt: new Date(),
+                isCompleted
             },
         });
         if (!updatedProject) throw new NotFoundError('Project not found');
+        await prisma.form.updateMany({
+            where: {
+                projectId
+            },
+            data: {
+                closed: true
+            }
+        });
         await createAuditLog(
             req.employeeId,
             req.ip.address || null,
@@ -482,6 +509,7 @@ export {
     editEmployeeRole,
     removeEmployee,
     updateProject,
+    updateProjectStatus,
     exportProject,
     deleteProject
 };

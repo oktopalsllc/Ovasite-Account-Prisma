@@ -5,7 +5,7 @@ CREATE TYPE "EmployeeRole" AS ENUM ('OWNER', 'ADMIN', 'MEMBER', 'GUEST');
 CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN', 'SUPER_ADMIN');
 
 -- CreateEnum
-CREATE TYPE "Source" AS ENUM ('FACEBOOK', 'TWITTER', 'INSTAGRAM', 'LINKEDIN', 'GOOGLE', 'OTHER');
+CREATE TYPE "Source" AS ENUM ('OTHER', 'FACEBOOK', 'TWITTER', 'INSTAGRAM', 'LINKEDIN', 'GOOGLE', 'FRIEND');
 
 -- CreateEnum
 CREATE TYPE "ProjectRole" AS ENUM ('SUPERVISOR', 'FIELD_AGENT', 'GUEST', 'MANAGER');
@@ -57,7 +57,6 @@ CREATE TABLE "Price" (
 CREATE TABLE "Organization" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "email" TEXT,
     "logo" TEXT,
     "address" TEXT,
     "inviteCode" TEXT NOT NULL,
@@ -109,12 +108,14 @@ CREATE TABLE "Invite" (
 CREATE TABLE "Project" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "image" TEXT,
     "description" TEXT NOT NULL,
     "expectedDuration" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "isCompleted" BOOLEAN NOT NULL DEFAULT false,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3) NOT NULL,
+    "creatorId" TEXT,
     "organizationId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -141,6 +142,7 @@ CREATE TABLE "Form" (
     "formData" TEXT NOT NULL DEFAULT '[]',
     "description" TEXT NOT NULL DEFAULT '',
     "published" BOOLEAN NOT NULL DEFAULT false,
+    "closed" BOOLEAN NOT NULL DEFAULT false,
     "visits" INTEGER NOT NULL DEFAULT 0,
     "subCount" INTEGER NOT NULL DEFAULT 0,
     "creatorId" TEXT NOT NULL,
@@ -213,9 +215,6 @@ CREATE UNIQUE INDEX "Price_subscriptionId_key" ON "Price"("subscriptionId");
 CREATE UNIQUE INDEX "Organization_name_key" ON "Organization"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Organization_email_key" ON "Organization"("email");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Organization_inviteCode_key" ON "Organization"("inviteCode");
 
 -- CreateIndex
@@ -231,7 +230,7 @@ CREATE INDEX "Organization_userId_name_idx" ON "Organization"("userId", "name");
 CREATE INDEX "Employee_userId_organizationId_idx" ON "Employee"("userId", "organizationId");
 
 -- CreateIndex
-CREATE INDEX "Project_organizationId_idx" ON "Project"("organizationId");
+CREATE INDEX "Project_organizationId_creatorId_idx" ON "Project"("organizationId", "creatorId");
 
 -- CreateIndex
 CREATE INDEX "EmployeeProjectAssociation_employeeId_projectId_idx" ON "EmployeeProjectAssociation"("employeeId", "projectId");
@@ -262,6 +261,9 @@ ALTER TABLE "Invite" ADD CONSTRAINT "Invite_organizationId_fkey" FOREIGN KEY ("o
 
 -- AddForeignKey
 ALTER TABLE "Invite" ADD CONSTRAINT "Invite_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Project" ADD CONSTRAINT "Project_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Project" ADD CONSTRAINT "Project_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;

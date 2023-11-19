@@ -10,6 +10,7 @@ import{
   editEmployeeRole,
   removeEmployee,
   updateProject,
+  updateProjectStatus,
   exportProject,
   deleteProject
 } from './project.controller.js';
@@ -38,6 +39,7 @@ projectRouter.get('/:orgId/projectusers/:projectId', getProjectEmployees);
 projectRouter.patch('/:orgId/updateprojectrole/:projectId', editEmployeeRole);
 projectRouter.delete('/:orgId/:projectId/removeemployee/:empId', removeEmployee);
 projectRouter.patch('/:orgId/project/update/:projectId', updateProject);
+projectRouter.patch('/:orgId/project/status/:projectId', updateProjectStatus);
 projectRouter.get('/:orgId/project/export/:projectId', exportProject);
 projectRouter.delete('/:orgId/project/delete/:projectId', deleteProject);
 
