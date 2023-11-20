@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import asyncHandler from "express-async-handler";
-
+import { uploadFile } from "../services/cloudinaryService.js";
 const prisma = new PrismaClient();
 // TODO: use checkTeamExist Middleware on routes
 
@@ -72,13 +72,32 @@ const getEmployeeByEmail = asyncHandler(async (req, res) => {
 const updateEmployee = asyncHandler(async (req, res) => {
   const { orgId, employeeId } = req.params;
 
+  let avatarUrl;
+
+  if (req.file) {
+    try {
+      avatarUrl = await uploadFile(req.file);
+      console.log(
+        "🚀 ~ file: employees.controllers.js:80 ~ updateEmployee ~ avatarUrl:",
+        avatarUrl
+      );
+    } catch (error) {
+      console.error("Error in file upload:", error.message);
+
+      return res.status(500).json({ error: "Error uploading file." });
+    }
+  }
+
   try {
     const updatedEmployee = await prisma.employee.update({
       where: {
         id: employeeId,
         organizationId: orgId,
       },
-      data: req.body,
+      data: {
+        ...req.body,
+        avatar: avatarUrl || null,
+      },
     });
 
     res.status(200).json(updatedEmployee);

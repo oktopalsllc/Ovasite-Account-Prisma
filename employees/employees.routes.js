@@ -1,5 +1,6 @@
 import express from "express";
 import { verifyToken } from "../middleware/authenticate.js";
+import upload from "../middleware/multerConfig.js";
 import {
   changeEmployeeRole,
   deleteEmployee,
@@ -28,7 +29,11 @@ employeeRouter.get("/:orgId/employees/count", getEmployeesCount);
 employeeRouter.get("/:orgId/employees", getAllEmployees);
 employeeRouter.get("/:orgId/employees/:employeeId", getEmployeeById);
 employeeRouter.get("/:orgId/employees/", getEmployeeByEmail);
-employeeRouter.patch("/:orgId/employees/:employeeId", updateEmployee);
+employeeRouter.patch(
+  "/:orgId/employees/:employeeId",
+  upload.single("avatar"),
+  updateEmployee
+);
 employeeRouter.delete("/:orgId/employees/:employeeId", deleteEmployee);
 
 employeeRouter.get("/:orgId/employees/:employeeId/teams", getTeamsByEmployee);
