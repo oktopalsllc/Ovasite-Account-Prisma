@@ -7,7 +7,7 @@ import sendMail from "../services/sendMail.js";
 
 const prisma = new PrismaClient();
 
-const BASE_URL = `http://localhost:${process.env.PORT}`;
+const BASE_URL = process.env.BASE_URL;
 
 const registerUser = asyncHandler(async (req, res) => {
   try {
@@ -24,11 +24,11 @@ const registerUser = asyncHandler(async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       await prisma.user.create({
-        data: { 
-          email: lowercaseEmail, 
-          password: hashedPassword, 
-          source, 
-          role 
+        data: {
+          email: lowercaseEmail,
+          password: hashedPassword,
+          source,
+          role,
         },
       });
 
@@ -52,11 +52,9 @@ const registerAdminUser = asyncHandler(async (req, res) => {
     const currentUser = req.user; // Replace this with your actual user identification method
 
     if (!currentUser.role === UserRole.SUPER_ADMIN) {
-      return res
-        .status(403)
-        .json({
-          error: "Permission denied. Only superAdmin can create isAdmin users.",
-        });
+      return res.status(403).json({
+        error: "Permission denied. Only superAdmin can create isAdmin users.",
+      });
     }
 
     // Check if the user already exists
@@ -100,7 +98,10 @@ const loginUser = asyncHandler(async (req, res) => {
     }
     const organizations = await prisma.organization.findMany({
       where: {
-        OR: [{ employees: { some: { userId: user.id }}}, { employees: { some: { email } } }],
+        OR: [
+          { employees: { some: { userId: user.id } } },
+          { employees: { some: { email } } },
+        ],
       },
       select: {
         id: true,
@@ -108,7 +109,7 @@ const loginUser = asyncHandler(async (req, res) => {
         logo: true,
       },
     });
-    const userInfo = {      
+    const userInfo = {
       id: user.id,
       email: user.email,
       role: user.role,
@@ -117,8 +118,8 @@ const loginUser = asyncHandler(async (req, res) => {
       stripePriceId: user.stripePriceId,
       stripeCurrentPeriodEnd: user.stripeCurrentPeriodEnd,
       createdAt: user.createdAt,
-      organizations: organizations
-    }
+      organizations: organizations,
+    };
 
     // include user information
     const tokenPayload = {
@@ -128,18 +129,39 @@ const loginUser = asyncHandler(async (req, res) => {
     };
 
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
-      expiresIn: "1000h",
+      expiresIn: "10h",
     });
-    res
-      .cookie("access_token", token, {
-        httpOnly: true, 
-        sameSite: "none",
-        secure: true,
-      })
-      .status(200)
-      .json({ access_token: token, userInfo: userInfo});
+
+    // Generate Refresh Token
+    const refreshToken = jwt.sign(
+      tokenPayload,
+      process.env.REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: "7d", // Refresh token with a longer lifespan
+      }
+    );
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken: refreshToken },
+    });
+
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
+    // Set Refresh Token in HTTP-Only Cookie
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      sameSite: "None",
+      secure: true,
+    });
+
+    res.status(200).json({ access_token: token, userInfo: userInfo });
   } catch (error) {
-    console.error({ error: "An error occurred while logging in" });
+    console.error({ error });
   }
 });
 
@@ -184,13 +206,11 @@ const forgetPassword = asyncHandler(async (req, res) => {
 
     const data = await sendMail(mailOptions);
 
-    return res
-      .status(200)
-      .json({
-        resetToken,
-        data,
-        message: "Password reset link sent successfully",
-      });
+    return res.status(200).json({
+      resetToken,
+      data,
+      message: "Password reset link sent successfully",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Password reset link sending failed" });
@@ -271,9 +291,56 @@ const changePassword = asyncHandler(async (req, res) => {
   }
 });
 
+const handleRefreshToken = asyncHandler(async (req, res) => {
+  try {
+    const { refresh_token } = req.cookies; // Assuming the refresh token is stored in cookies
+
+    if (!refresh_token) {
+      return res.status(401).json({ error: "Access denied, token missing!" });
+    }
+
+    // Verify the refresh token
+    jwt.verify(
+      refresh_token,
+      process.env.REFRESH_TOKEN_SECRET,
+      async (err, decoded) => {
+        if (err) {
+          return res
+            .status(403)
+            .json({ error: "Invalid or expired refresh token" });
+        }
+
+        // Fetch the user from the database
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.id },
+        });
+
+        if (!user || user.refreshToken !== refresh_token) {
+          return res.status(403).json({ error: "Invalid refresh token" });
+        }
+
+        // Generate a new access token
+        const newAccessToken = jwt.sign(
+          { id: user.id },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "10h",
+          }
+        );
+
+        return res.status(200).json({ access_token: newAccessToken });
+      }
+    );
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 export {
   changePassword,
   forgetPassword,
+  handleRefreshToken,
   loginUser,
   logoutUser,
   registerAdminUser,

@@ -24,6 +24,7 @@ const verifyToken = (req, res, next) => {
 
 const verifyLogin = (req, res, next) => {
   const token = req.cookies.access_token;
+  console.log("🚀 ~ file: authenticate.js:27 ~ verifyLogin ~ token:", token)
 
   if (token) {
     // Verify the token and extract the user information
@@ -64,4 +65,22 @@ const verifySuperAdmin = (req, res, next) => {
   });
 };
 
-export { verifyToken, verifySuperAdmin, verifyUser, verifyLogin };
+
+const verifyRefreshToken = (req, res, next) => {
+  // Assuming the refresh token is sent in a custom header or in cookies
+  const refreshToken = req.headers['x-refresh-token'] || req.cookies.refresh_token;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token is missing" });
+  }
+
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decodedToken) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+    req.user = decodedToken;
+    next();
+  });
+};
+
+export { verifyToken, verifySuperAdmin, verifyUser, verifyLogin,verifyRefreshToken };
