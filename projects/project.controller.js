@@ -423,7 +423,7 @@ const updateProject = asyncHandler(async (req, res, next) => {
 const updateProjectStatus = asyncHandler(async (req, res, next) => {
   try {
     const { orgId, projectId } = req.params;
-    const { status } = req.body;
+    const { status, endDate } = req.body;
     const oldValues = await prisma.project.findUnique({
       where: {
         id: projectId,
@@ -435,6 +435,7 @@ const updateProjectStatus = asyncHandler(async (req, res, next) => {
       },
       data: {
         status,
+        endDate,
         isCompleted: true,
       },
     });
