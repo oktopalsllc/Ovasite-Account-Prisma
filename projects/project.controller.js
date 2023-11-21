@@ -245,7 +245,10 @@ const getProjectStats = asyncHandler(async (req, res, next) => {
       },
     });
     const forms = await prisma.form.findMany({
-      where: { projectId },
+      where: { 
+        projectId,
+        published: true,
+      },
     });
     const stats = await prisma.form.aggregate({
       where: {
