@@ -423,7 +423,7 @@ const updateProject = asyncHandler(async (req, res, next) => {
 const updateProjectStatus = asyncHandler(async (req, res, next) => {
   try {
     const { orgId, projectId } = req.params;
-    const { status, isCompleted } = req.body;
+    const { status } = req.body;
     const oldValues = await prisma.project.findUnique({
       where: {
         id: projectId,
@@ -435,7 +435,7 @@ const updateProjectStatus = asyncHandler(async (req, res, next) => {
       },
       data: {
         status,
-        isCompleted,
+        isCompleted: true,
       },
     });
     if (!updatedProject) throw new NotFoundError("Project not found");
@@ -477,36 +477,79 @@ const exportProject = asyncHandler(async (req, res, next) => {
       where: {
         id: projectId,
       },
+      include: {
+        creator: true,
+        organization: true,
+        reports: true,
+        forms:{
+          where:{
+            published: true
+          }
+        }
+      }
     });
     if (!project) throw new NotFoundError("Project not found");
+    const stats = await prisma.form.aggregate({
+      where: {
+        projectId,
+      },
+      _sum: {
+        visits: true,
+        subCount: true,
+      },
+    });
+    const visits = stats._sum.visits || 0;
+    const subCount = stats._sum.subCount || 0;
+
+    let submissionRate = 0;
+    let bounceRate = 0;
+
+    if (visits > 0) {
+      submissionRate = (subCount / visits) * 100;
+      bounceRate = 100 - submissionRate;
+    }
 
     const csvWriter = new createObjectCsvWriter({
       path: "project.csv", // Set the desired file name
       header: [
         // Define the CSV header
         { id: "id", title: "ID" },
-        { id: "orgId", title: "Organization ID" },
+        { id: "organization", title: "Organization" },
         { id: "name", title: "Name" },
+        { id: "creator", title: "Created By" },
         { id: "description", title: "Description" },
         { id: "expectedDuration", title: "Expected Duration" },
         { id: "status", title: "Status" },
         { id: "isCompleted", title: "Is Completed?" },
         { id: "startDate", title: "Start Date" },
         { id: "endDate", title: "End Date" },
+        { id: "forms", title: "Published Forms" },
+        { id: "formVisits", title: "Form Visits" },
+        { id: "submissionCount", title: "Submission Count" },
+        { id: "submissionRate", title: "Submission Rate %" },
+        { id: "bounceRate", title: "Bounce Rate %" },
+        { id: "reports", title: "Reports" },
       ],
     });
 
     const records = [
       {
         id: project.id,
-        orgId: project.organizationId,
+        organization: project.organization?.name || project.organizationId,
         name: project.name,
+        creator: project.creator?.fullName || project.creatorId,
         description: project.description,
         expectedDuration: project.expectedDuration,
         status: project.status,
         isCompleted: project.isCompleted,
         startDate: project.startDate,
         endDate: project.endDate,
+        forms: project.forms.length,
+        formVisits: visits,
+        submissionCount: subCount,
+        submissionRate: submissionRate,
+        bounceRate: bounceRate,
+        reports: project.reports.length,
       },
     ];
 
