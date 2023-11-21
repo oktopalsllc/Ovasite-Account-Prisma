@@ -150,6 +150,8 @@ const loginUser = asyncHandler(async (req, res) => {
       httpOnly: true,
       sameSite: "none",
       secure: true,
+      path: '/', // Cookie available across the entire app
+      maxAge: 10 * 60 * 60 * 1000, // Cookie expires in 10 hours (in milliseconds)
     });
 
     // Set Refresh Token in HTTP-Only Cookie
@@ -157,6 +159,8 @@ const loginUser = asyncHandler(async (req, res) => {
       httpOnly: true,
       sameSite: "None",
       secure: true,
+      path: '/', // Cookie available across the entire app
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expires in 7 days (in milliseconds)
     });
 
     res.status(200).json({ access_token: token, userInfo: userInfo });
