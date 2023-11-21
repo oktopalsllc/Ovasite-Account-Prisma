@@ -297,6 +297,7 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
     });
     const updatedRole = await prisma.employeeProjectAssociation.update({
       where: {
+        id: oldValues.id,
         employeeId: empId,
         projectId: projectId,
         updatedAt: new Date(),
