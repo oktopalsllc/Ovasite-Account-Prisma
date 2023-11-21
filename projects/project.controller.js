@@ -334,10 +334,18 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
 const removeEmployee = asyncHandler(async (req, res, next) => {
   try {
     const { orgId, empId, projectId } = req.params;
+    const projAssociation = await prisma.employeeProjectAssociation.findUnique({
+      where: {
+        employeed: empId,
+        projectId: projectId,
+      },
+      select: {
+        id: true,
+      }
+    })
     const deletedAssociation = await prisma.employeeProjectAssociation.delete({
       where: {
-        employeeId: empId,
-        projectId: projectId,
+        id: projAssociation.id,
       },
     });
     if (!deletedAssociation)
