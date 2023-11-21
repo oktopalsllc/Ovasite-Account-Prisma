@@ -289,7 +289,7 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
   try {
     const { orgId, projectId } = req.params;
     const { empId, role } = req.body;
-    const oldValues = await prisma.employeeProjectAssociation.findUnique({
+    const oldValues = await prisma.employeeProjectAssociation.findFirst({
       where: {
         employeeId: empId,
         projectId: projectId,
