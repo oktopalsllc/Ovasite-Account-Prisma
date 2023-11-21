@@ -300,10 +300,10 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
         id: oldValues.id,
         employeeId: empId,
         projectId: projectId,
-        updatedAt: new Date(),
       },
       data: {
         role: role,
+        updatedAt: new Date(),
       },
     });
     if (!updatedRole)
