@@ -513,7 +513,7 @@ const exportProject = asyncHandler(async (req, res, next) => {
       path: "project.csv", // Set the desired file name
       header: [
         // Define the CSV header
-        { id: "id", title: "ID" },
+        { id: "project_id", title: "Project Id" },
         { id: "organization", title: "Organization" },
         { id: "name", title: "Name" },
         { id: "creator", title: "Created By" },
@@ -536,7 +536,7 @@ const exportProject = asyncHandler(async (req, res, next) => {
 
     const records = [
       {
-        id: project.id,
+        project_id: project.id,
         organization: project.organization?.name || project.organizationId,
         name: project.name,
         creator: project.creator?.fullName || project.creatorId,
