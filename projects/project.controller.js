@@ -557,7 +557,7 @@ const exportProject = asyncHandler(async (req, res, next) => {
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
         startDate: project.startDate,
-        endDate: project.endDate,
+        endDate: project.isCompleted ? project.endDate : "In Progress",
         forms: project.forms.length,
         formVisits: visits,
         submissionCount: subCount,
