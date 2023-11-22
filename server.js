@@ -45,7 +45,15 @@ app.use(
 // app.use(csurf({ cookie: true }));
 
 // Helmet for setting secure HTTP headers
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        connectSrc: ["'self'", "vitals.vercel-insights.com"],
+      },
+    },
+  })
+);
 
 // Morgan for HTTP request logging
 app.use(morgan("dev"));
