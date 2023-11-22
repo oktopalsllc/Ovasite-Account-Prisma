@@ -58,7 +58,6 @@ const generateInviteLink = asyncHandler(async (req, res) => {
       from: "Ovasite <no-reply@oktopals.com>",
       to: email,
       subject: `${organization.name} invited you to Ovasite`,
-      subject: `${organization.name} invited you to Ovasite`,
       html: `
           <div class="container" style="max-width: 90%; margin: auto; padding-top: 20px">
             <h2>You have been invited to join an organization.</h2>

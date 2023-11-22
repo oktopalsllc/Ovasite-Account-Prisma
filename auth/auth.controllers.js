@@ -202,7 +202,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
     const resetLink = `${BASE_URL}/reset-password/${resetToken}`;
 
     const mailOptions = {
-      from: "TeamLyf <onboarding@resend.dev>",
+      from: "Ovasite <no-reply@oktopals.com>",
       to: email,
       subject: "Password Reset",
       html: `Click <a href="${resetLink}">here</a> to reset your password.`,
