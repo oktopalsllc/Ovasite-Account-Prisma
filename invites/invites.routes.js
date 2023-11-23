@@ -4,7 +4,11 @@ import {
   getCurrentEmployee,
   getCurrentOrganization,
 } from "../middleware/index.js";
-import { generateInviteLink, joinOrganization } from "./invites.controllers.js";
+import {
+  checkUserExists,
+  generateInviteLink,
+  joinOrganization,
+} from "./invites.controllers.js";
 
 const inviteRouter = express.Router({ mergeParams: true });
 
@@ -17,5 +21,6 @@ inviteRouter.post(
   generateInviteLink
 );
 inviteRouter.post("/join/:inviteToken", joinOrganization);
+inviteRouter.post("/check-user-exists", checkUserExists);
 
 export default inviteRouter;
