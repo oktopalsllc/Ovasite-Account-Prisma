@@ -1,8 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import asyncHandler from "express-async-handler";
-import { uploadFile } from "../services/cloudinaryService.js";
+import {
+  getPublicIdFromUrl,
+  updateFile,
+} from "../services/cloudinaryService.js";
+
 const prisma = new PrismaClient();
-// TODO: use checkTeamExist Middleware on routes
 
 // Get all employees by organization
 const getAllEmployees = asyncHandler(async (req, res) => {
@@ -72,23 +75,24 @@ const getEmployeeByEmail = asyncHandler(async (req, res) => {
 const updateEmployee = asyncHandler(async (req, res) => {
   const { orgId, employeeId } = req.params;
 
-  let avatarUrl;
-
-  if (req.file) {
-    try {
-      avatarUrl = await uploadFile(req.file);
-      console.log(
-        "🚀 ~ file: employees.controllers.js:80 ~ updateEmployee ~ avatarUrl:",
-        avatarUrl
-      );
-    } catch (error) {
-      console.error("Error in file upload:", error.message);
-
-      return res.status(500).json({ error: "Error uploading file." });
-    }
-  }
-
   try {
+    const existingEmployee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: { avatar: true },
+    });
+
+    if (!existingEmployee) {
+      return res
+        .status(404)
+        .json({ error: `Employee with ID ${id} not found.` });
+    }
+
+    let avatarUrl = existingEmployee.avatar;
+    if (req.file) {
+      const { publicId } = getPublicIdFromUrl(avatarUrl);
+      avatarUrl = await updateFile(req.file, publicId);
+    }
+
     const updatedEmployee = await prisma.employee.update({
       where: {
         id: employeeId,

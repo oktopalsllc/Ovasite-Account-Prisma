@@ -69,13 +69,11 @@ const createProject = asyncHandler(async (req, res, next) => {
       JSON.stringify(projectAssociaton),
       projectAssociaton.id.toString()
     );
-    res
-      .status(201)
-      .json({
-        message: "Project created successfully",
-        status: true,
-        newProject,
-      });
+    res.status(201).json({
+      message: "Project created successfully",
+      status: true,
+      newProject,
+    });
   } catch (err) {
     next(err);
   }
@@ -116,13 +114,11 @@ const addEmployee = asyncHandler(async (req, res, next) => {
       JSON.stringify(newAssociation),
       newAssociation.id.toString()
     );
-    res
-      .status(201)
-      .json({
-        message: "Employee added successfully",
-        status: true,
-        newAssociation,
-      });
+    res.status(201).json({
+      message: "Employee added successfully",
+      status: true,
+      newAssociation,
+    });
   } catch (err) {
     next(err);
   }
@@ -248,7 +244,7 @@ const getProjectStats = asyncHandler(async (req, res, next) => {
       },
     });
     const forms = await prisma.form.findMany({
-      where: { 
+      where: {
         projectId,
         published: true,
       },
@@ -322,13 +318,11 @@ const editEmployeeRole = asyncHandler(async (req, res, next) => {
       JSON.stringify(updatedRole),
       oldValues.id.toString()
     );
-    res
-      .status(201)
-      .json({
-        message: "Role updated successfully",
-        status: true,
-        updatedRole,
-      });
+    res.status(201).json({
+      message: "Role updated successfully",
+      status: true,
+      updatedRole,
+    });
   } catch (err) {
     next(err);
   }
@@ -345,8 +339,8 @@ const removeEmployee = asyncHandler(async (req, res, next) => {
       },
       select: {
         id: true,
-      }
-    })
+      },
+    });
     const deletedAssociation = await prisma.employeeProjectAssociation.delete({
       where: {
         id: projAssociation.id,
@@ -378,27 +372,23 @@ const removeEmployee = asyncHandler(async (req, res, next) => {
 const updateProject = asyncHandler(async (req, res, next) => {
   try {
     const { orgId, projectId } = req.params;
-    let imageUrl;
-
-    if (req.file) {
-      try {
-        imageUrl = await uploadFile(req.file);
-        console.log(
-          "🚀 ~ file: project.controller.js:365 ~ updateProject ~ imageUrl:",
-          imageUrl
-        );
-      } catch (error) {
-        console.error("Error in file upload:", error.message);
-        // Optionally, handle the error, e.g., by returning a response
-        return res.status(500).json({ error: "Error uploading file." });
-      }
-    }
 
     const oldValues = await prisma.project.findUnique({
       where: {
         id: projectId,
       },
+      select: {
+        image: true,
+      },
     });
+
+    let imageUrl = oldValues.image;
+
+    if (req.file) {
+      const { publicId } = getPublicIdFromUrl(logoUrl);
+      imageUrl = await uploadFile(req.file, publicId);
+    }
+
     const updatedProject = await prisma.project.update({
       where: {
         id: projectId,
@@ -419,13 +409,11 @@ const updateProject = asyncHandler(async (req, res, next) => {
       JSON.stringify(updatedProject),
       oldValues.id.toString()
     );
-    res
-      .status(201)
-      .json({
-        message: "Project updated successfully",
-        status: true,
-        updatedProject,
-      });
+    res.status(201).json({
+      message: "Project updated successfully",
+      status: true,
+      updatedProject,
+    });
   } catch (err) {
     next(err);
   }
@@ -470,13 +458,11 @@ const updateProjectStatus = asyncHandler(async (req, res, next) => {
       JSON.stringify(updatedProject),
       oldValues.id.toString()
     );
-    res
-      .status(201)
-      .json({
-        message: "Project updated successfully",
-        status: true,
-        updatedProject,
-      });
+    res.status(201).json({
+      message: "Project updated successfully",
+      status: true,
+      updatedProject,
+    });
   } catch (err) {
     next(err);
   }
@@ -494,12 +480,12 @@ const exportProject = asyncHandler(async (req, res, next) => {
         creator: true,
         organization: true,
         reports: true,
-        forms:{
-          where:{
-            published: true
-          }
-        }
-      }
+        forms: {
+          where: {
+            published: true,
+          },
+        },
+      },
     });
     if (!project) throw new NotFoundError("Project not found");
     const stats = await prisma.form.aggregate({
@@ -533,7 +519,7 @@ const exportProject = asyncHandler(async (req, res, next) => {
         { id: "description", title: "Description" },
         { id: "expectedDuration", title: "Expected Duration" },
         { id: "status", title: "Status" },
-        { id: "isCompleted", title: "Is Completed?" },        
+        { id: "isCompleted", title: "Is Completed?" },
         { id: "createdAt", title: "Created At" },
         { id: "updatedAt", title: "Last Updated At" },
         { id: "startDate", title: "Start Date" },

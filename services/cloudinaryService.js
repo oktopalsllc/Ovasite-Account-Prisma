@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
+import stream from "stream";
 dotenv.config();
-import stream from "stream"
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 
@@ -13,25 +13,26 @@ cloudinary.config({
 // Function to upload a file
 const uploadFile = async (file) => {
   try {
-    // If file is stored in memory by multer, use buffer
+    const uploadOptions = {
+      resource_type: "image",
+    };
+
     if (file.buffer) {
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
-          { resource_type: 'image' },
+          uploadOptions,
           (error, result) => {
             if (error) reject(error);
             else resolve(result.secure_url);
           }
         );
 
-        // Pipe the buffer into Cloudinary's upload stream
         const bufferStream = new stream.PassThrough();
         bufferStream.end(file.buffer);
         bufferStream.pipe(uploadStream);
       });
     } else {
-      // If file is stored as a file in the filesystem, use the file path
-      const result = await cloudinary.uploader.upload(file.path);
+      const result = await cloudinary.uploader.upload(file.path, uploadOptions);
       return result.secure_url;
     }
   } catch (error) {
@@ -51,15 +52,46 @@ const deleteFile = async (publicId) => {
 };
 
 // Function to update a file
-const updateFile = async (file, publicId) => {
+const updateFile = async (file, oldPublicId) => {
   try {
-    const result = await cloudinary.uploader.upload(file.path, {
-      public_id: publicId,
-      overwrite: true,
-    });
-    return result.url; // Returns the new file URL
+    // Upload the new file
+    const uploadOptions = {
+      resource_type: "image",
+      ...(file.buffer && { resource_type: "auto" }), // For buffer upload
+    };
+
+    let newFileResult;
+    if (file.buffer) {
+      // Handle buffer upload
+      newFileResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          uploadOptions,
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        const bufferStream = new stream.PassThrough();
+        bufferStream.end(file.buffer);
+        bufferStream.pipe(uploadStream);
+      });
+    } else {
+      // Handle file path upload
+      newFileResult = await cloudinary.uploader.upload(
+        file.path,
+        uploadOptions
+      );
+    }
+
+    // Delete the old file if it exists
+    if (oldPublicId) {
+      await cloudinary.uploader.destroy(oldPublicId);
+    }
+
+    return newFileResult.secure_url;
   } catch (error) {
-    throw new Error("Error updating file on Cloudinary:", error.message);
+    console.error("Error in updateFile:", error);
+    throw error;
   }
 };
 
@@ -86,4 +118,30 @@ const listFiles = async (options = {}) => {
   }
 };
 
-export { deleteFile, fetchFileDetails, listFiles, updateFile, uploadFile };
+// Helper function to extract publicId from a Cloudinary URL
+
+const getPublicIdFromUrl = (url) => {
+  if (!url) return { publicId: null, folderName: null };
+
+  // Splitting the URL into parts
+  const urlParts = url.split("/");
+
+  const uploadIndex = urlParts.indexOf("upload");
+  const folderName = urlParts.slice(uploadIndex + 1, -1).join("/");
+
+  const fileName = urlParts[urlParts.length - 1];
+  const [publicId] = fileName.split(".");
+  console.log("🚀 ~ file: index.js:28 ~ newStuff ~ publicId:", publicId);
+
+  console.log("🚀 ~ file: index.js:31 ~ newStuff ~ folderName:", folderName);
+  return { publicId, folderName };
+};
+
+export {
+  deleteFile,
+  fetchFileDetails,
+  getPublicIdFromUrl,
+  listFiles,
+  updateFile,
+  uploadFile,
+};

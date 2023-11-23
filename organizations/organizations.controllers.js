@@ -2,7 +2,10 @@ import { EmployeeRole, PrismaClient } from "@prisma/client";
 import asyncHandler from "express-async-handler";
 import ShortUniqueId from "short-unique-id";
 import { addNewCustomer } from "../helpers/stripe.js";
-import { uploadFile } from "../services/cloudinaryService.js";
+import {
+  getPublicIdFromUrl,
+  updateFile,
+} from "../services/cloudinaryService.js";
 
 const prisma = new PrismaClient();
 // TODO: transfer ownership of organizations to employee within the organization
@@ -120,42 +123,36 @@ const getOrganizationById = asyncHandler(async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 // Update an organization by ID
 const updateOrganization = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, address } = req.body;
-  let logoUrl;
-
-  if (req.file) {
-    try {
-      logoUrl = await uploadFile(req.file);
-      console.log("🚀 ~ file: organizations.controllers.js:132 ~ updateOrganization ~ logoUrl:", logoUrl);
-    } catch (error) {
-      console.error("Error in file upload:", error.message);
-      // Optionally, handle the error, e.g., by returning a response
-      return res.status(500).json({ error: "Error uploading file." });
-    }
-  }
 
   try {
-    // Check if the organization with the specified ID exists
     const existingOrganization = await prisma.organization.findUnique({
       where: { id },
+      select: { logo: true },
     });
 
     if (!existingOrganization) {
       return res
         .status(404)
-        .json({ error: `organization with ID ${id} not found.` });
+        .json({ error: `Organization with ID ${id} not found.` });
     }
 
-    // Update the organization data
+    let logoUrl = existingOrganization.logo;
+    if (req.file) {
+      const { publicId } = getPublicIdFromUrl(logoUrl);
+      logoUrl = await updateFile(req.file, publicId);
+    }
+
     const updatedOrganization = await prisma.organization.update({
       where: { id },
       data: {
         name: name || existingOrganization.name,
         address: address || null,
-        logo: logoUrl || null,
+        logo: logoUrl || existingOrganization.logo,
       },
     });
 

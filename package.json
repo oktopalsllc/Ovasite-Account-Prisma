@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-"start": "npx prisma db push && npx supervisor server.js",
+"start": "npx supervisor server.js",
     "watch": "node --watch server.js"
   },
   "engines": {
