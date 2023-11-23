@@ -166,6 +166,9 @@ const getOrgProjects = asyncHandler(async (req, res) => {
       where: {
         organizationId: orgId,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
     res.status(201).json(projects);
   } catch (err) {

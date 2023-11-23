@@ -96,6 +96,9 @@ const getSubmissions = asyncHandler(async(req, res, next) => {
             where: {
                 projectId: projectId
             },
+            orderBy: {
+              createdAt: "desc",
+            },
         });
         res.json(submissions);
     }

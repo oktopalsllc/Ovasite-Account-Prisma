@@ -82,6 +82,9 @@ const getReports = asyncHandler(async(req, res, next) => {
             where: {
                 projectId: projectId
             },
+            orderBy: {
+              createdAt: "desc",
+            },
         });
         res.status(201).json(reports);
     } 
