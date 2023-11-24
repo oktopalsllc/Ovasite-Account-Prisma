@@ -141,7 +141,6 @@ const joinOrganization = asyncHandler(async (req, res) => {
       data: {
         email: email.toLowerCase(),
         password: hashedPassword,
-        fullName,
       },
     });
 

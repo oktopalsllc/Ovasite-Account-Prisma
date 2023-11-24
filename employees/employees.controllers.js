@@ -9,11 +9,11 @@ const prisma = new PrismaClient();
 
 // Get all employees by organization
 const getAllEmployees = asyncHandler(async (req, res) => {
-  const { orgId } = req.params;
+  const { orgId: organizationId } = req.params;
   try {
     const employees = await prisma.employee.findMany({
       where: {
-        organizationId: orgId,
+        organizationId,
       },
     });
     res.status(200).json(employees);
@@ -46,16 +46,16 @@ const getEmployeeById = asyncHandler(async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 // Get employee by email
 const getEmployeeByEmail = asyncHandler(async (req, res) => {
   const { orgId } = req.params;
-  const { email } = req.query; // Use a query parameter for the email
-
+  const { email } = req.query; 
   try {
     const employee = await prisma.employee.findFirst({
       where: {
         organizationId: orgId,
-        email: email, // Email to search for
+        email: email
       },
     });
 
@@ -271,5 +271,6 @@ export {
   getEmployeesCount,
   getTeamsByEmployee,
   searchEmployees,
-  updateEmployee,
+  updateEmployee
 };
+

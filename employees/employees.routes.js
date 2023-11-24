@@ -20,15 +20,12 @@ employeeRouter.use("/:orgId", verifyToken, checkOrganizationExists);
 
 // Routes for managing employees within an organization
 
+employeeRouter.get("/:orgId/employees/email", getEmployeeByEmail);
 employeeRouter.get("/:orgId/employees/search", searchEmployees);
-
-employeeRouter.get("/:orgId/employees/", getEmployeeByEmail);
-
 employeeRouter.get("/:orgId/employees/count", getEmployeesCount);
-
 employeeRouter.get("/:orgId/employees", getAllEmployees);
+
 employeeRouter.get("/:orgId/employees/:employeeId", getEmployeeById);
-employeeRouter.get("/:orgId/employees/", getEmployeeByEmail);
 employeeRouter.patch(
   "/:orgId/employees/:employeeId",
   upload.single("avatar"),
