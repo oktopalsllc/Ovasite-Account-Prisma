@@ -79,8 +79,6 @@ const generateInviteLink = asyncHandler(async (req, res) => {
 
 const joinOrganization = asyncHandler(async (req, res) => {
   const { inviteToken } = req.params;
-  const { fullName, email, password } = req.body;
-  const lowercasedEmail = email.toLowerCase();
 
   try {
     // Find the invite link in the database using Prisma
@@ -94,63 +92,89 @@ const joinOrganization = asyncHandler(async (req, res) => {
         .json({ error: "Invite link not found or expired" });
     }
 
-    if (lowercasedEmail !== invite.email) {
-      return res.status(400).json({ error: "Invalid email address" });
-    }
-
     const organization = await prisma.organization.findUnique({
       where: { id: invite.organizationId },
     });
 
     if (!organization) {
-      return res.status(404).json({ error: "organization not found" });
+      return res.status(404).json({ error: "Organization not found" });
     }
+
+    // Extract email from invite token (assuming email is part of invite record)
+    const invitedEmail = invite.email.toLowerCase();
 
     let existingUser = await prisma.user.findUnique({
-      where: { email: lowercasedEmail },
+      where: { email: invitedEmail },
     });
 
-    if (!existingUser) {
-      if (!fullName || !password) {
-        return res
-          .status(400)
-          .json({ error: "Full name and password are required for new users" });
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-      existingUser = await prisma.user.create({
+    if (existingUser) {
+      // Create an employee record for the existing user
+      const newEmployee = await prisma.employee.create({
         data: {
-          email: lowercasedEmail,
-          password: hashedPassword,
+          fullName: existingUser.fullName, // Assuming fullName is part of the user record
+          email: invitedEmail,
+          organization: { connect: { id: organization.id } },
+          role: invite.role,
+          user: { connect: { id: existingUser.id } },
         },
       });
+      const toDeleteInvite = await prisma.invite.findFirst({
+        where: { token: inviteToken },
+      });
+      await prisma.invite.delete({
+        where: { id: toDeleteInvite.id, token: inviteToken },
+      });
+      return res.status(200).json(newEmployee);
     }
+
+    // Below is the logic for new users
+    let { fullName, email, password } = req.body;
+    if (!fullName || !password) {
+      return res
+        .status(400)
+        .json({ error: "Full name and password are required for new users" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        fullName,
+      },
+    });
 
     const newEmployee = await prisma.employee.create({
       data: {
         fullName,
-        email: lowercasedEmail,
+        email: email.toLowerCase(),
         organization: { connect: { id: organization.id } },
         role: invite.role,
-        user: { connect: { id: existingUser.id } },
+        user: { connect: { id: newUser.id } },
       },
+    });
+
+    const toDeleteInvite = await prisma.invite.findFirst({
+      where: { token: inviteToken },
     });
 
     await prisma.invite.delete({
       where: {
+        id: toDeleteInvite.id,
         token: inviteToken,
       },
     });
-
     res.status(200).json(newEmployee);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: error.message });
   }
 });
 
 const checkUserExists = asyncHandler(async (req, res) => {
-  const { email, inviteToken } = req.body;
+  const { email } = req.body;
+  const { inviteToken } = req.params;
 
   const invite = await prisma.invite.findFirst({
     where: { token: inviteToken },

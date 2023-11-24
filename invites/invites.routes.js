@@ -10,17 +10,16 @@ import {
   joinOrganization,
 } from "./invites.controllers.js";
 
-const inviteRouter = express.Router({ mergeParams: true });
-
-inviteRouter.use("/:orgId", verifyToken);
+const inviteRouter = express.Router();
 
 inviteRouter.post(
   "/:orgId/generate-invite-link",
+  verifyToken,
   getCurrentOrganization,
   getCurrentEmployee,
   generateInviteLink
 );
 inviteRouter.post("/join/:inviteToken", joinOrganization);
-inviteRouter.post("/check-user-exists", checkUserExists);
+inviteRouter.post("/check-user-exists/:inviteToken", checkUserExists);
 
 export default inviteRouter;
