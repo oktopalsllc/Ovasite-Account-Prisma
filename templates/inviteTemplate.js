@@ -1,4 +1,4 @@
-const inviteTemplate = (inviteToken, organizationName) => `
+const inviteTemplate = (url,inviteToken, organizationName) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,11 +28,11 @@ const inviteTemplate = (inviteToken, organizationName) => `
                         
                 </div>
                 <div>
-                    <h1 class="text-l font-semibold text-gray-500 my-6 text-center font-serif">Join the Oktopals team on Ovasite!</h1>
+                    <h1 class="text-l font-semibold text-gray-500 my-6 text-center font-serif">Join the ${organizationName} team on Ovasite!</h1>
                 </div>    
                 <div class="">
                     <p class="text-sm text-gray-500 mb-4 text-center font-semibold border border-solid p-4 mx-4 font-sans">
-                        Click below to accept the Ovasite organization invitation.
+                        Click below to accept the ${organizationName}  organization invitation.
                     </p>
                 </div>
                 
