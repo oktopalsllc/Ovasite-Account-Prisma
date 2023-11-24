@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
 import { v4 as uuidv4 } from "uuid";
 import sendMail from "../services/sendMail.js";
+import inviteTemplate from "../templates/inviteTemplate.js";
 
 const prisma = new PrismaClient();
 
@@ -52,19 +53,14 @@ const generateInviteLink = asyncHandler(async (req, res) => {
         employee: { connect: { id: req.employeeId } },
       },
     });
+    console.log(`${url}/join/${inviteToken}`);
 
     // Send an email with the invite link
     const mailOptions = {
       from: "Ovasite <no-reply@oktopals.com>",
       to: email,
       subject: `${organization.name} invited you to Ovasite`,
-      html: `
-          <div class="container" style="max-width: 90%; margin: auto; padding-top: 20px">
-            <h2>You have been invited to join an organization.</h2>
-            <p>Click the following link to accept the invitation:</p>
-            <a href="${url}/join/${inviteToken}">Accept Invitation</a>
-          </div>
-        `,
+      html: inviteTemplate(inviteToken, organization.name),
     };
 
     // Sending the invitation email

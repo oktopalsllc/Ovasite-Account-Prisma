@@ -50,12 +50,12 @@ const getEmployeeById = asyncHandler(async (req, res) => {
 // Get employee by email
 const getEmployeeByEmail = asyncHandler(async (req, res) => {
   const { orgId } = req.params;
-  const { email } = req.query; 
+  const { email } = req.query;
   try {
     const employee = await prisma.employee.findFirst({
       where: {
         organizationId: orgId,
-        email: email
+        email: email,
       },
     });
 
@@ -271,6 +271,5 @@ export {
   getEmployeesCount,
   getTeamsByEmployee,
   searchEmployees,
-  updateEmployee
+  updateEmployee,
 };
-
