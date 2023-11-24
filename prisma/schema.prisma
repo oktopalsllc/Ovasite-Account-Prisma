@@ -8,15 +8,15 @@ datasource db {
 }
 
 model User {
-  id                     String    @id @default(cuid())
-  email                  String    @unique   
-  password               String?
-  phoneNumber            String?
-  role                   UserRole  @default(USER)
-  source                 Source    @default(OTHER)
-  passwordResetToken     String?
-  passwordResetAt        DateTime?
-  refreshToken          String?
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  password           String?
+  phoneNumber        String?
+  role               UserRole  @default(USER)
+  source             Source    @default(OTHER)
+  passwordResetToken String?
+  passwordResetAt    DateTime?
+  refreshToken       String?
 
   employees     Employee[]
   organizations Organization[]
@@ -48,23 +48,23 @@ model Price {
 }
 
 model Organization {
-  id          String       @id @default(cuid())
-  name        String       @unique
-  logo        String?
-  address     String?
-  inviteCode  String       @unique
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
-  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
-  stripePriceId          String?   @map(name: "stripe_price_id")
-  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
-  employees   Employee[]
-  forms       Form[]
-  invite      Invite[]
-  projects    Project[]
-  reports     Report[]
-  submissions Submission[]
+  id                     String       @id @default(cuid())
+  name                   String       @unique
+  logo                   String?
+  address                String?
+  inviteCode             String       @unique
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  stripeCustomerId       String?      @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?      @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?      @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime?    @map(name: "stripe_current_period_end")
+  employees              Employee[]
+  forms                  Form[]
+  invite                 Invite[]
+  projects               Project[]
+  reports                Report[]
+  submissions            Submission[]
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -129,7 +129,7 @@ model Project {
   updatedAt           DateTime                     @updatedAt
   projectAssociations EmployeeProjectAssociation[]
   forms               Form[]
-  creator             Employee?                     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creator             Employee?                    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   organization        Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   reports             Report[]
   submissions         Submission[]
@@ -173,11 +173,11 @@ model Form {
 }
 
 model Submission {
-  id             String  @id @default(cuid())
+  id             String       @id @default(cuid())
   title          String
   description    String
   submissionData String
-  geolocation    String?  
+  geolocation    String?
   formData       String?
   creatorId      String
   employee       Employee     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -221,6 +221,16 @@ model Audit {
   oldValues String
   newValues String
   rowId     String
+}
+
+model Feedback {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  rating    String?
+  title     String
+  comment   String
+  createdAt DateTime @default(now())
 }
 
 enum EmployeeRole {

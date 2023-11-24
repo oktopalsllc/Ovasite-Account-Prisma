@@ -19,6 +19,7 @@ import {
   submissionRouter,
   subscriptionRouter,
   userRouter,
+  feedbackRouter
 } from "./localImport.js";
 dotenv.config();
 
@@ -68,6 +69,8 @@ const basePath = "/api/v1";
 // Authentication
 app.use(`${basePath}/auth`, authRouter);
 app.use(`${basePath}/users`, userRouter);
+
+app.use(`${basePath}/feedback`, feedbackRouter);
 
 // Administration (Organization)
 app.use(`${basePath}/orgs`, organizationsRouter);

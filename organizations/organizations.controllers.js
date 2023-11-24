@@ -8,7 +8,7 @@ import {
 } from "../services/cloudinaryService.js";
 
 const prisma = new PrismaClient();
-// TODO: transfer ownership of organizations to employee within the organization
+
 
 const { randomUUID } = new ShortUniqueId({ length: 10 });
 
