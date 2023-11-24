@@ -6,7 +6,7 @@ import sendMail from "../services/sendMail.js";
 
 const prisma = new PrismaClient();
 
-const url = "https://ovasite.onrender.com/api/v1";
+const url = process.env.INVITE_BASED_URL;
 
 const generateInviteLink = asyncHandler(async (req, res) => {
   let { email, role } = req.body;
