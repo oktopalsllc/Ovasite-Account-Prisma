@@ -12,7 +12,8 @@ import{
   updateProject,
   updateProjectStatus,
   exportProject,
-  deleteProject
+  deleteProject,
+  searchProject
 } from './project.controller.js';
 import { getCurrentEmployee } from "../middleware/getCurrentEmployee.js";
 import { 
@@ -29,6 +30,7 @@ const projectRouter = express.Router({ mergeParams: true });
 projectRouter.use('/:orgId', checkOrganizationExists, getCurrentEmployee);
 
 projectRouter.post('/:orgId/project/create', createProject);
+projectRouter.post('/:orgId/project/search', searchProject);
 projectRouter.post('/:orgId/project/adduser/:projectId', addEmployee);
 projectRouter.get('/:orgId/project/:projectId', getOrgProject);
 projectRouter.get('/:orgId/projects', getOrgProjects);

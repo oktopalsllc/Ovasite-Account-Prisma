@@ -215,7 +215,7 @@ const getAllEmployees = asyncHandler(async (req, res) => {
     const employees = await prisma.employee.findMany({
       where: {
         organizationId: orgId,
-        // Exclude employees who have an association with the specified projectId
+
         projectAssociations: {
           none: {
             projectId: projectId,
@@ -509,7 +509,7 @@ const exportProject = asyncHandler(async (req, res, next) => {
     }
 
     const csvWriter = new createObjectCsvWriter({
-      path: "project.csv", // Set the desired file name
+      path: `${project.name}`,
       header: [
         // Define the CSV header
         { id: "project_id", title: "Project Id" },
@@ -597,6 +597,40 @@ const deleteProject = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Search Project
+const searchProject = asyncHandler(async (req, res) => {
+  const { orgId } = req.params;
+  const { query } = req.query;
+
+
+
+  try {
+    // Check if the organization exists
+    const organization = await prisma.organization.findUnique({
+      where: { id: orgId },
+    });
+
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    const project = await prisma.project.findFirst({
+      where: {
+        name: query,
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    res.status(200).json(project);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error });
+  }
+});
+
 // Export endpoints
 export {
   addEmployee,
@@ -611,6 +645,7 @@ export {
   getProjectEmployees,
   getProjectStats,
   removeEmployee,
+  searchProject,
   updateProject,
   updateProjectStatus,
 };

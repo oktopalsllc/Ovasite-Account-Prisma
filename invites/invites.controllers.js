@@ -80,6 +80,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
     const invite = await prisma.invite.findFirst({
       where: { token: inviteToken },
     });
+    console.log("🚀 ~ file: invites.controllers.js:85 ~ joinOrganization ~ invite:", invite)
 
     if (!invite || invite.expirationDate < new Date()) {
       return res
@@ -106,7 +107,6 @@ const joinOrganization = asyncHandler(async (req, res) => {
       // Create an employee record for the existing user
       const newEmployee = await prisma.employee.create({
         data: {
-          fullName: existingUser.fullName, // Assuming fullName is part of the user record
           email: invitedEmail,
           organization: { connect: { id: organization.id } },
           role: invite.role,
@@ -122,7 +122,6 @@ const joinOrganization = asyncHandler(async (req, res) => {
       return res.status(200).json(newEmployee);
     }
 
-    // Below is the logic for new users
     let { fullName, email, password } = req.body;
     if (!fullName || !password) {
       return res
