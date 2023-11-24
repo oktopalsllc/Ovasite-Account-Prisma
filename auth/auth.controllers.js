@@ -4,10 +4,10 @@ import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
 import generateResetToken from "../services/generateResetToken.js";
 import sendMail from "../services/sendMail.js";
-
+import resetTemplate from "../templates/resetPasswordTemplate.js";
 const prisma = new PrismaClient();
 
-const BASE_URL = process.env.BASE_URL;
+const url = process.env.BASE_URL;
 
 const registerUser = asyncHandler(async (req, res) => {
   try {
@@ -150,7 +150,7 @@ const loginUser = asyncHandler(async (req, res) => {
       httpOnly: true,
       sameSite: "none",
       secure: true,
-      path: '/', // Cookie available across the entire app
+      path: "/", // Cookie available across the entire app
       maxAge: 10 * 60 * 60 * 1000, // Cookie expires in 10 hours (in milliseconds)
     });
 
@@ -159,7 +159,7 @@ const loginUser = asyncHandler(async (req, res) => {
       httpOnly: true,
       sameSite: "None",
       secure: true,
-      path: '/', // Cookie available across the entire app
+      path: "/", // Cookie available across the entire app
       maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expires in 7 days (in milliseconds)
     });
 
@@ -178,7 +178,6 @@ const logoutUser = asyncHandler((req, res) => {
 
 const forgetPassword = asyncHandler(async (req, res) => {
   try {
-    const { id: userId } = req.user;
     const { email } = req.body;
     const lowercaseEmail = email.toLowerCase();
     // Get the user
@@ -199,13 +198,11 @@ const forgetPassword = asyncHandler(async (req, res) => {
       },
     });
 
-    const resetLink = `${BASE_URL}/reset-password/${resetToken}`;
-
     const mailOptions = {
       from: "Ovasite <no-reply@oktopals.com>",
       to: email,
       subject: "Password Reset",
-      html: `Click <a href="${resetLink}">here</a> to reset your password.`,
+      html: resetTemplate(url, resetToken, lowercaseEmail),
     };
 
     const data = await sendMail(mailOptions);

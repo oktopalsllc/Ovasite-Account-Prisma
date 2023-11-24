@@ -7,7 +7,7 @@ import inviteTemplate from "../templates/inviteTemplate.js";
 
 const prisma = new PrismaClient();
 
-const url = process.env.INVITE_BASED_URL;
+const url = process.env.BASE_URL;
 
 const generateInviteLink = asyncHandler(async (req, res) => {
   let { email, role } = req.body;
@@ -53,14 +53,13 @@ const generateInviteLink = asyncHandler(async (req, res) => {
         employee: { connect: { id: req.employeeId } },
       },
     });
-    console.log(`${url}/join/${inviteToken}`);
 
     // Send an email with the invite link
     const mailOptions = {
       from: "Ovasite <no-reply@oktopals.com>",
       to: email,
       subject: `${organization.name} invited you to Ovasite`,
-      html: inviteTemplate(url,inviteToken, organization.name),
+      html: inviteTemplate(url, inviteToken, organization.name),
     };
 
     // Sending the invitation email
