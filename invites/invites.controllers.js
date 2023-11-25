@@ -107,6 +107,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
       // Create an employee record for the existing user
       const newEmployee = await prisma.employee.create({
         data: {
+          fullName: req.body.fullName,
           email: invitedEmail,
           organization: { connect: { id: organization.id } },
           role: invite.role,
