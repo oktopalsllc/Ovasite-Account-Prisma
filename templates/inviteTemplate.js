@@ -1,18 +1,54 @@
-const inviteTemplate = (url,inviteToken, organizationName) => `
+const inviteTemplate = (url, inviteToken, organizationName) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css" rel="stylesheet">
-    <!-- <title>Account Activation</title> -->
+<style>
+            /* Add your internal styles here */
+            body {
+                background-color: #edf2f7;
+                padding: 1rem;
+            }
+            .container {
+                max-width: 28rem;
+                margin: 0 auto;
+                background-color: #ffffff;
+                border-radius: 0.5rem;
+                overflow: hidden;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                padding: 1.5rem;
+            }
+            .logo {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 1rem;
+
+            }
+            .logo svg {
+
+                width: 80px;
+                height: 60px;
+            }
+            /* Update other styles as needed */
+            .message {
+                margin-bottom: 1rem;
+                text-align: center;
+                border: 1px solid #e2e8f0;
+                padding: 1rem;
+                font-family: sans-serif;
+                color: #4a5568;
+            }
+     
+
+        </style>
 </head>
-<body class="bg-white-300 p-4">
-    <table class="max-w-md mx-auto bg-white-100 rounded-lg overflow-hidden shadow-lg p-6">
-        <tr>
-            <td>
-                <div class="flex items-center justify-center shrink-0 px-4 py-4 text-2xl bg-opacity-5">
-                    <svg width="103" height="89" viewBox="0 0 103 89" fill="none" xmlns="http://www.w3.org/2000/svg">
+<body style="background-color: #f3f4f6; padding: 16px;">
+    <div class="container">
+        
+                <div div class="logo">
+                    <svg width="80" height="60" viewBox="0 0 103 89" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g clip-path="url(#clip0_646_4789)">
                         <path d="M70.2752 67.5932C67.9607 67.5932 65.7794 67.3484 63.7321 66.8583C61.729 66.3683 59.9485 65.6556 58.3905 64.7202C56.8771 63.7848 55.6752 62.6268 54.7851 61.2461C53.9393 59.8653 53.5164 58.2616 53.5164 56.4355C53.5164 56.2571 53.5164 56.1013 53.5164 55.9676C53.5164 55.7896 53.5389 55.6338 53.5832 55.5001H63.9324C63.9324 55.5891 63.9324 55.7006 63.9324 55.8339C63.9324 55.9233 63.9324 56.0123 63.9324 56.1013C63.9767 57.0814 64.2885 57.9052 64.8672 58.5736C65.4901 59.197 66.2916 59.6648 67.2706 59.9765C68.25 60.2438 69.3183 60.3775 70.4756 60.3775C71.3214 60.3775 72.2115 60.2885 73.1462 60.1102C74.1256 59.9322 74.9489 59.6201 75.6168 59.1748C76.2843 58.7294 76.6183 58.0836 76.6183 57.2372C76.6183 56.3018 76.1954 55.5891 75.3496 55.0991C74.5485 54.6091 73.458 54.2084 72.0779 53.8964C70.7427 53.54 69.2958 53.2062 67.7382 52.8941C66.1801 52.5378 64.6 52.1371 62.9977 51.6918C61.4397 51.246 59.9931 50.6449 58.6576 49.8878C57.3668 49.0858 56.3206 48.0614 55.5195 46.8143C54.7183 45.5669 54.3179 43.9857 54.3179 42.0706C54.3179 40.0215 54.7405 38.2844 55.5863 36.859C56.4767 35.3889 57.6783 34.2087 59.192 33.3178C60.7053 32.427 62.4412 31.7811 64.3996 31.3802C66.4027 30.9793 68.5172 30.7789 70.7427 30.7789C72.7901 30.7789 74.7263 30.9793 76.5515 31.3802C78.421 31.7811 80.0901 32.4047 81.5591 33.251C83.0725 34.0528 84.2519 35.0995 85.0977 36.3911C85.9435 37.6385 86.3664 39.1083 86.3664 40.801C86.3664 41.0237 86.3439 41.2686 86.2996 41.5359C86.2996 41.7586 86.2996 41.9144 86.2996 42.0038H76.0172V41.4691C76.0172 40.712 75.7725 40.0883 75.2828 39.5983C74.7931 39.1083 74.1256 38.7298 73.2798 38.4624C72.434 38.1507 71.4992 37.9949 70.4756 37.9949C69.808 37.9949 69.1401 38.0617 68.4725 38.1954C67.8492 38.2844 67.2706 38.4403 66.7366 38.6629C66.2023 38.8413 65.7573 39.1083 65.4011 39.4646C65.0897 39.821 64.934 40.2663 64.934 40.801C64.934 41.4691 65.2233 42.0259 65.8019 42.4713C66.3805 42.8723 67.1595 43.2061 68.1386 43.4735C69.1626 43.7409 70.2752 44.0304 71.4771 44.342C73.124 44.6984 74.8599 45.0769 76.6851 45.4779C78.5099 45.8343 80.2237 46.3686 81.826 47.0813C83.4729 47.7497 84.7862 48.7741 85.7653 50.1548C86.7893 51.4912 87.3011 53.3398 87.3011 55.7006C87.3011 57.9277 86.8557 59.8207 85.9656 61.3797C85.0756 62.8941 83.8515 64.119 82.2935 65.0544C80.7355 65.9451 78.9328 66.591 76.8851 66.992C74.8378 67.393 72.6343 67.5932 70.2752 67.5932Z" fill="#FF595A"/>
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M25.9935 40.3916C27.1554 39.7 28.6213 39.364 30.3913 39.3834C32.2162 39.4034 33.6811 39.7756 34.786 40.5006C35.9357 41.1813 36.7481 42.2148 37.2227 43.6009C37.7416 44.9876 37.9901 46.6831 37.968 48.6872L37.9409 51.1592C37.9321 51.9788 37.879 52.7457 37.7817 53.4602C40.3377 55.7516 43.3282 58.1191 46.5975 60.4437C46.6165 60.4099 46.6354 60.3761 46.6544 60.342C48.1977 57.5971 48.9921 54.1539 49.0378 50.0117C49.0832 45.8691 48.3639 42.4315 46.8805 39.6979C45.4413 36.9649 43.3271 34.9148 40.5377 33.5479C37.7929 32.1814 34.4397 31.4764 30.4784 31.4329C26.8021 31.3926 23.6094 31.9462 20.9005 33.0938C22.296 35.3622 23.9856 37.7937 25.9935 40.3916Z" fill="#FF595A"/>
@@ -24,38 +60,32 @@ const inviteTemplate = (url,inviteToken, organizationName) => `
                         <rect width="103" height="89" fill="white"/>
                         </clipPath>
                         </defs>
-                        </svg>
-                        
+                    </svg>
                 </div>
-                <div>
-                    <h1 class="text-l font-semibold text-gray-500 my-6 text-center font-serif">Join the ${organizationName} team on Ovasite!</h1>
-                </div>    
-                <div class="">
-                    <p class="text-sm text-gray-500 mb-4 text-center font-semibold border border-solid p-4 mx-4 font-sans">
-                        Click below to accept the ${organizationName}  organization invitation.
+                <div class="message">
+                    <h1 style="font-size: 1.25rem; font-weight: 600; color: #4b5563; margin-top: 1.5rem; text-align: center; font-family: serif;">Join the  ${organizationName} team on Ovasite!</h1>
+<p style="font-size: 0.875rem; color: #4b5563; margin-bottom: 1rem; text-align: center; font-weight: 600; padding: 1rem; font-family: sans-serif;">
+                        Click below to accept the ${organizationName} organization invitation.
                     </p>
-                </div>
-                
-                <div class="flex flex-col items-center justify-center my-10">
-                    <button>
-                        <a href="${url}/join/${inviteToken}" class="bg-red-500 text-white font-semibold py-2 
-                                px-4 rounded hover:bg-red-400 button-center">Accept Invite</a>
-                    </button>
-                </div> 
-                <div class="my-10">      
-                <p class="italic text-sm text-gray-300 mt-4 text-center font-semibold">
-                    <!-- Just confirming you're you! <br> -->
-                    &copy;Copyright <a href="https://oktopals.com/" class="italic text-gray-500 hover:text-green-400"> OktopalsLLC</a> All Rights Reserved
-                    <br>
-                    <a href="contact@oktopals.com" class="text-gray-300 hover:text-red-400">contact@oktopals.com</a>
-                </p>
-              </div> 
-            </td>
-        </tr>
-    </table>
-</body>
-</html>
+                </div>    
 
-`;
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 2.5rem;">
+
+                        <a  href="${url}/join/${inviteToken}" style="background-color: #ef4444; color: #ffffff; font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-block; transition: background-color 0.3s ease-in-out; &:hover { background-color: #f87171; }">Accept Invite</a>
+
+                </div> 
+                <div style="margin-top: 2.5rem;">
+                    <p style="font-style: italic; font-size: 0.875rem; color: #cbd5e0; margin-top: 1rem; text-align: center; font-weight: 600;">
+                        &copy; Copyright <a href="https://oktopals.com/" style="font-style: italic; color: #4b5563; &:hover { color: #34d399; }">Oktopals LLC</a> All Rights Reserved
+                        <br>
+                        <a href="mailto:contact@oktopals.com" style="color: #cbd5e0; &:hover { color: #ef4444; }">contact@oktopals.com</a>
+                    </p>
+                </div> 
+    </div>
+</body>
+</html>`;
 
 export default inviteTemplate;
+
+
+

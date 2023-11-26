@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-"start": "npx supervisor server.js",
+    "start": "npx supervisor server.js",
     "watch": "node --watch server.js"
   },
   "engines": {
@@ -42,7 +42,6 @@
     "sharp": "^0.32.6",
     "short-unique-id": "^5.0.3",
     "stripe": "^14.2.0",
-    "uploadthing": "^6.0.1",
     "uuid": "^9.0.0"
   }
 }
