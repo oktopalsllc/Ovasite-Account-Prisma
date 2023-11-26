@@ -35,7 +35,7 @@ employeeRouter.delete("/:orgId/employees/:employeeId", deleteEmployee);
 
 employeeRouter.get("/:orgId/employees/:employeeId/teams", getTeamsByEmployee);
 employeeRouter.patch(
-  "/:orgId/employees/:employeeId/change-role",
+  "/:orgId/employees/change-role",
   changeEmployeeRole
 );
 

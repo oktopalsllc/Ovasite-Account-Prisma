@@ -65,7 +65,7 @@ const generateInviteLink = asyncHandler(async (req, res) => {
     // Sending the invitation email
     const data = await sendMail(mailOptions);
 
-    res.status(201).json({ inviteToken, data, msg: "Invitation sent" });
+    res.status(201).json({ inviteToken, data, msg: "Invitation sent", status: true });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });

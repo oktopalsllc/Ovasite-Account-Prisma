@@ -15,6 +15,20 @@ const getAllEmployees = asyncHandler(async (req, res) => {
       where: {
         organizationId,
       },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+        avatar:true,
+        contactNumber: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      }
     });
     res.status(200).json(employees);
   } catch (error) {
@@ -124,7 +138,7 @@ const deleteEmployee = asyncHandler(async (req, res) => {
 
     res
       .status(204)
-      .json({ message: `Employee ${employeeId} deleted successfully.` });
+      .json({ message: `Employee ${employeeId} deleted successfully.`, status: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -160,8 +174,8 @@ const getTeamsByEmployee = asyncHandler(async (req, res) => {
 
 // Change Employee Role
 const changeEmployeeRole = asyncHandler(async (req, res) => {
-  const { orgId, employeeId } = req.params;
-  const { role } = req.body;
+  const { orgId } = req.params;
+  const { role, employeeId } = req.body;
 
   try {
     // Check if the organization exists
@@ -184,11 +198,11 @@ const changeEmployeeRole = asyncHandler(async (req, res) => {
         .json({ error: "Employee not found in the organization" });
     }
 
-    // Validate the new role to be either "Admin" or "Member"
-    if (role !== "ADMIN" && role !== "MEMBER") {
+    // Validate the new role to be either "Admin", "Guest" or "Member"
+    if (role !== "ADMIN" && role !== "MEMBER" && role !== "GUEST") {
       return res
         .status(400)
-        .json({ error: "Invalid role. Role must be 'Admin' or 'Member'" });
+        .json({ error: "Invalid role. Role must be 'Admin', 'Member' or 'Guest" });
     }
 
     // Update the employee's role
@@ -197,7 +211,7 @@ const changeEmployeeRole = asyncHandler(async (req, res) => {
       data: { role },
     });
 
-    res.status(200).json({ message: "Employee role updated successfully" });
+    res.status(200).json({ message: "Employee role updated successfully", status: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
