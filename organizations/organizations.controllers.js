@@ -156,7 +156,7 @@ const updateOrganization = asyncHandler(async (req, res) => {
       },
     });
 
-    res.status(202).json(updatedOrganization);
+    res.status(202).json({message:'Organization updated', status: true, updatedOrganization});
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
