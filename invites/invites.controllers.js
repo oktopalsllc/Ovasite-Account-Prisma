@@ -80,7 +80,7 @@ const joinOrganization = asyncHandler(async (req, res) => {
     const invite = await prisma.invite.findFirst({
       where: { token: inviteToken },
     });
-    console.log("🚀 ~ file: invites.controllers.js:85 ~ joinOrganization ~ invite:", invite)
+
 
     if (!invite || invite.expirationDate < new Date()) {
       return res

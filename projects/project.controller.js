@@ -13,22 +13,6 @@ const createProject = asyncHandler(async (req, res, next) => {
     const { name, description, expectedDuration, status, startDate, endDate } =
       req.body;
 
-    let imageUrl;
-
-    if (req.file) {
-      try {
-        imageUrl = await uploadFile(req.file);
-        console.log(
-          "🚀 ~ file: project.controller.js:30 ~ createProject ~ imageUrl:",
-          imageUrl
-        );
-      } catch (error) {
-        console.error("Error in file upload:", error.message);
-        // Optionally, handle the error, e.g., by returning a response
-        return res.status(500).json({ error: "Error uploading file." });
-      }
-    }
-
     const newProject = await prisma.project.create({
       data: {
         name,
@@ -37,7 +21,6 @@ const createProject = asyncHandler(async (req, res, next) => {
         status,
         startDate,
         endDate,
-        image: imageUrl || null,
         organization: { connect: { id: orgId } },
         creator: { connect: { id: req.employeeId } },
       },
@@ -377,17 +360,7 @@ const updateProject = asyncHandler(async (req, res, next) => {
       where: {
         id: projectId,
       },
-      select: {
-        image: true,
-      },
     });
-
-    let imageUrl = oldValues.image;
-
-    if (req.file) {
-      const { publicId } = getPublicIdFromUrl(logoUrl);
-      imageUrl = await uploadFile(req.file, publicId);
-    }
 
     const updatedProject = await prisma.project.update({
       where: {

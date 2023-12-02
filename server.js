@@ -11,6 +11,7 @@ import {
   auditRouter,
   authRouter,
   employeeRouter,
+  feedbackRouter,
   formRouter,
   inviteRouter,
   organizationsRouter,
@@ -19,7 +20,6 @@ import {
   submissionRouter,
   subscriptionRouter,
   userRouter,
-  feedbackRouter
 } from "./localImport.js";
 dotenv.config();
 
@@ -46,15 +46,7 @@ app.use(
 // app.use(csurf({ cookie: true }));
 
 // Helmet for setting secure HTTP headers
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        connectSrc: ["'self'", "vitals.vercel-insights.com"],
-      },
-    },
-  })
-);
+app.use(helmet());
 
 // Morgan for HTTP request logging
 app.use(morgan("dev"));
