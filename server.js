@@ -76,7 +76,7 @@ app.use(`${basePath}/orgs`, auditRouter);
 app.use(`${basePath}/orgs`, subscriptionRouter);
 
 //Connect to the database before listening
-const PORT = process.env.PORT || process.env.API_PORT;
+const PORT = process.env.PORT 
 console.log("Port: " + PORT);
 
 app.listen(PORT, () => {
