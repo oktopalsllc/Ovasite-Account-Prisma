@@ -1,5 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 import asyncHandler from "express-async-handler";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
 
@@ -31,8 +32,8 @@ const getSingleUser = asyncHandler(async (req, res) => {
       stripeSubscriptionId: user.stripeSubscriptionId,
       stripePriceId: user.stripePriceId,
       stripeCurrentPeriodEnd: user.stripeCurrentPeriodEnd,
-      createdAt: user.createdAt
-    }
+      createdAt: user.createdAt,
+    };
     res.status(200).json(userInfo);
   } catch (err) {
     throw new Error(err);
@@ -66,23 +67,22 @@ const getUserOrgs = asyncHandler(async (req, res) => {
     const employees = await prisma.employee.findMany({
       where: {
         userId: userId,
-        role: 'OWNER'
+        role: "OWNER",
       },
       include: {
-        organization: true
-      }
-    });    
-    const organizations = employees.map(emp => emp.organization);
+        organization: true,
+      },
+    });
+    const organizations = employees.map((emp) => emp.organization);
     const count = organizations.length;
-    res.json({userOrgs: organizations, count: count});
-  }
-  catch (err) {
+    res.json({ userOrgs: organizations, count: count });
+  } catch (err) {
     console.error(err);
     throw new Error(err);
   }
 });
 
-// Get employees of organizations 
+// Get employees of organizations
 // where user is the owner
 const getUserOrgsEmps = asyncHandler(async (req, res) => {
   try {
@@ -90,21 +90,26 @@ const getUserOrgsEmps = asyncHandler(async (req, res) => {
     const employees = await prisma.employee.findMany({
       where: {
         userId: userId,
-        role: 'OWNER'
+        role: "OWNER",
       },
       include: {
         organization: {
           include: {
-            employees: true
-          }
-        }
-      }
+            employees: true,
+          },
+        },
+      },
     });
-    const orgsEmployees = employees.map(emp => ({ organization: emp.organization, employees: emp.organization.employees }));
-    const count = orgsEmployees.reduce((total, org) => total + org.employees.length, 0);
-    res.json({userEmps:orgsEmployees, count: count});
-  }
-  catch (err) {
+    const orgsEmployees = employees.map((emp) => ({
+      organization: emp.organization,
+      employees: emp.organization.employees,
+    }));
+    const count = orgsEmployees.reduce(
+      (total, org) => total + org.employees.length,
+      0
+    );
+    res.json({ userEmps: orgsEmployees, count: count });
+  } catch (err) {
     console.error(err);
     throw new Error(err);
   }
@@ -117,27 +122,32 @@ const getUserOrgsProjects = asyncHandler(async (req, res) => {
     const employees = await prisma.employee.findMany({
       where: {
         userId: userId,
-        role: 'OWNER'
+        role: "OWNER",
       },
       include: {
         organization: {
           include: {
-            projects: true
-          }
-        }
-      }
+            projects: true,
+          },
+        },
+      },
     });
-    const orgsProjects = employees.map(emp => ({ organization: emp.organization, projects: emp.organization.projects }));
-    const count = orgsProjects.reduce((total, org) => total + org.projects.length, 0);
-    res.json({orgsProjects: orgsProjects, count: count});
-  }
-  catch (err) {
+    const orgsProjects = employees.map((emp) => ({
+      organization: emp.organization,
+      projects: emp.organization.projects,
+    }));
+    const count = orgsProjects.reduce(
+      (total, org) => total + org.projects.length,
+      0
+    );
+    res.json({ orgsProjects: orgsProjects, count: count });
+  } catch (err) {
     console.error(err);
     throw new Error(err);
   }
 });
 
-// Get forms of projects by organizations 
+// Get forms of projects by organizations
 // where user is the owner
 const getUserOrgsForms = asyncHandler(async (req, res) => {
   try {
@@ -145,34 +155,41 @@ const getUserOrgsForms = asyncHandler(async (req, res) => {
     const employees = await prisma.employee.findMany({
       where: {
         userId: userId,
-        role: 'OWNER'
+        role: "OWNER",
       },
       include: {
         organization: {
           include: {
             projects: {
               include: {
-                forms: true
-              }
-            }
-          }
-        }
-      }
+                forms: true,
+              },
+            },
+          },
+        },
+      },
     });
-    const orgsForms = employees.map(emp => ({
+    const orgsForms = employees.map((emp) => ({
       organization: emp.organization,
-      projects: emp.organization.projects.map(proj => ({ project: proj, forms: proj.forms }))
+      projects: emp.organization.projects.map((proj) => ({
+        project: proj,
+        forms: proj.forms,
+      })),
     }));
-    const count = orgsForms.reduce((total, org) => total + org.projects.reduce((total, proj) => total + proj.forms.length, 0), 0);
-    res.json({orgsForms: orgsForms, count: count});
-  }
-  catch (err) {
+    const count = orgsForms.reduce(
+      (total, org) =>
+        total +
+        org.projects.reduce((total, proj) => total + proj.forms.length, 0),
+      0
+    );
+    res.json({ orgsForms: orgsForms, count: count });
+  } catch (err) {
     console.error(err);
     throw new Error(err);
   }
 });
 
-// Get submissions of projects by organizations 
+// Get submissions of projects by organizations
 // where user is the owner
 const getUserOrgsSubmissions = asyncHandler(async (req, res) => {
   try {
@@ -180,34 +197,44 @@ const getUserOrgsSubmissions = asyncHandler(async (req, res) => {
     const employees = await prisma.employee.findMany({
       where: {
         userId: userId,
-        role: 'OWNER'
+        role: "OWNER",
       },
       include: {
         organization: {
           include: {
             projects: {
               include: {
-                submissions: true
-              }
-            }
-          }
-        }
-      }
+                submissions: true,
+              },
+            },
+          },
+        },
+      },
     });
-    const orgsSubmissions = employees.map(emp => ({
+    const orgsSubmissions = employees.map((emp) => ({
       organization: emp.organization,
-      projects: emp.organization.projects.map(proj => ({ project: proj, submissions: proj.submissions }))
+      projects: emp.organization.projects.map((proj) => ({
+        project: proj,
+        submissions: proj.submissions,
+      })),
     }));
-    const count = orgsSubmissions.reduce((total, org) => total + org.projects.reduce((total, proj) => total + proj.submissions.length, 0), 0);
-    res.json({orgsSubmissions: orgsSubmissions, count: count});
-  }
-  catch (err) {
+    const count = orgsSubmissions.reduce(
+      (total, org) =>
+        total +
+        org.projects.reduce(
+          (total, proj) => total + proj.submissions.length,
+          0
+        ),
+      0
+    );
+    res.json({ orgsSubmissions: orgsSubmissions, count: count });
+  } catch (err) {
     console.error(err);
     throw new Error(err);
   }
 });
 
-// Get reports of projects by organizations 
+// Get reports of projects by organizations
 // where user is the owner
 const getUserOrgsReports = asyncHandler(async (req, res) => {
   try {
@@ -215,28 +242,35 @@ const getUserOrgsReports = asyncHandler(async (req, res) => {
     const employees = await prisma.employee.findMany({
       where: {
         userId: userId,
-        role: 'OWNER'
+        role: "OWNER",
       },
       include: {
         organization: {
           include: {
             projects: {
               include: {
-                reports: true
-              }
-            }
-          }
-        }
-      }
+                reports: true,
+              },
+            },
+          },
+        },
+      },
     });
-    const orgsReports = employees.map(emp => ({
+    const orgsReports = employees.map((emp) => ({
       organization: emp.organization,
-      projects: emp.organization.projects.map(proj => ({ project: proj, reports: proj.reports }))
+      projects: emp.organization.projects.map((proj) => ({
+        project: proj,
+        reports: proj.reports,
+      })),
     }));
-    const count = orgsReports.reduce((total, org) => total + org.projects.reduce((total, proj) => total + proj.reports.length, 0), 0);
-    res.json({orgsReports: orgsReports, count: count});
-  }
-  catch (err) {
+    const count = orgsReports.reduce(
+      (total, org) =>
+        total +
+        org.projects.reduce((total, proj) => total + proj.reports.length, 0),
+      0
+    );
+    res.json({ orgsReports: orgsReports, count: count });
+  } catch (err) {
     console.error(err);
     throw new Error(err);
   }
@@ -282,15 +316,15 @@ const deleteUser = asyncHandler(async (req, res) => {
   }
 });
 
-export { 
-  deleteUser, 
-  getAllUsers, 
-  getSingleUser, 
+export {
+  deleteUser,
+  getAllUsers,
+  getSingleUser,
   getUserByEmail,
   getUserOrgs,
   getUserOrgsEmps,
-  getUserOrgsProjects,
   getUserOrgsForms,
+  getUserOrgsProjects,
+  getUserOrgsReports,
   getUserOrgsSubmissions,
-  getUserOrgsReports 
 };

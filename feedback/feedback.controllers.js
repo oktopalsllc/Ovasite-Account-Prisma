@@ -1,5 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 import asyncHandler from "express-async-handler";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
 
@@ -78,10 +79,4 @@ const deleteFeedback = asyncHandler(async (req, res) => {
   }
 });
 
-
-export {
-    createFeedback,
-    deleteFeedback,
-    getAllFeedback,
-    getFeedbackById,
-}
+export { createFeedback, deleteFeedback, getAllFeedback, getFeedbackById };

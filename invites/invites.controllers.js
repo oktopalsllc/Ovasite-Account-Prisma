@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
 import { v4 as uuidv4 } from "uuid";
 import sendMail from "../services/sendMail.js";
 import inviteTemplate from "../templates/inviteTemplate.js";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
 
@@ -65,7 +66,9 @@ const generateInviteLink = asyncHandler(async (req, res) => {
     // Sending the invitation email
     const data = await sendMail(mailOptions);
 
-    res.status(201).json({ inviteToken, data, msg: "Invitation sent", status: true });
+    res
+      .status(201)
+      .json({ inviteToken, data, msg: "Invitation sent", status: true });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
@@ -80,7 +83,6 @@ const joinOrganization = asyncHandler(async (req, res) => {
     const invite = await prisma.invite.findFirst({
       where: { token: inviteToken },
     });
-
 
     if (!invite || invite.expirationDate < new Date()) {
       return res

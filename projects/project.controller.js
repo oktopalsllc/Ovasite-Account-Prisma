@@ -1,9 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 import { createObjectCsvWriter } from "csv-writer";
 import asyncHandler from "express-async-handler";
 import { createAuditLog } from "../helpers/auditHelper.js";
 import { InternalServerError, NotFoundError } from "../middleware/errors.js";
-import { uploadFile } from "../services/cloudinaryService.js";
+const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
 // Creates a new project
@@ -574,8 +574,6 @@ const deleteProject = asyncHandler(async (req, res, next) => {
 const searchProject = asyncHandler(async (req, res) => {
   const { orgId } = req.params;
   const { query } = req.query;
-
-
 
   try {
     // Check if the organization exists

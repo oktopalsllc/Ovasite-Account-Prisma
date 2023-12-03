@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 import asyncHandler from "express-async-handler";
 import {
   getPublicIdFromUrl,
   updateFile,
 } from "../services/cloudinaryService.js";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
 
@@ -20,7 +21,7 @@ const getAllEmployees = asyncHandler(async (req, res) => {
         fullName: true,
         email: true,
         role: true,
-        avatar:true,
+        avatar: true,
         contactNumber: true,
         address: true,
         createdAt: true,
@@ -28,7 +29,7 @@ const getAllEmployees = asyncHandler(async (req, res) => {
       },
       orderBy: {
         createdAt: "desc",
-      }
+      },
     });
     res.status(200).json(employees);
   } catch (error) {
@@ -138,7 +139,10 @@ const deleteEmployee = asyncHandler(async (req, res) => {
 
     res
       .status(204)
-      .json({ message: `Employee ${employeeId} deleted successfully.`, status: true });
+      .json({
+        message: `Employee ${employeeId} deleted successfully.`,
+        status: true,
+      });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -202,7 +206,9 @@ const changeEmployeeRole = asyncHandler(async (req, res) => {
     if (role !== "ADMIN" && role !== "MEMBER" && role !== "GUEST") {
       return res
         .status(400)
-        .json({ error: "Invalid role. Role must be 'Admin', 'Member' or 'Guest" });
+        .json({
+          error: "Invalid role. Role must be 'Admin', 'Member' or 'Guest",
+        });
     }
 
     // Update the employee's role
@@ -211,7 +217,9 @@ const changeEmployeeRole = asyncHandler(async (req, res) => {
       data: { role },
     });
 
-    res.status(200).json({ message: "Employee role updated successfully", status: true });
+    res
+      .status(200)
+      .json({ message: "Employee role updated successfully", status: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

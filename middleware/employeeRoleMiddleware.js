@@ -1,5 +1,6 @@
-import { EmployeeRole, PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 import asyncHandler from "express-async-handler";
+const { PrismaClient, EmployeeRole } = pkg;
 
 const prisma = new PrismaClient();
 

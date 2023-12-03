@@ -1,4 +1,4 @@
-import { EmployeeRole, PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 import asyncHandler from "express-async-handler";
 import ShortUniqueId from "short-unique-id";
 import { addNewCustomer } from "../helpers/stripe.js";
@@ -6,9 +6,9 @@ import {
   getPublicIdFromUrl,
   updateFile,
 } from "../services/cloudinaryService.js";
+const { PrismaClient, EmployeeRole } = pkg;
 
 const prisma = new PrismaClient();
-
 
 const { randomUUID } = new ShortUniqueId({ length: 10 });
 
@@ -156,7 +156,13 @@ const updateOrganization = asyncHandler(async (req, res) => {
       },
     });
 
-    res.status(202).json({message:'Organization updated', status: true, updatedOrganization});
+    res
+      .status(202)
+      .json({
+        message: "Organization updated",
+        status: true,
+        updatedOrganization,
+      });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
