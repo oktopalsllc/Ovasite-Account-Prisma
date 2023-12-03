@@ -1,21 +1,18 @@
+import pkg from "@prisma/client";
 import jwt from "jsonwebtoken";
-import { createError } from "./errors.js";
-import { UserRole } from "@prisma/client";
-
+const { UserRole } = pkg;
 
 const verifyToken = (req, res, next) => {
   const bearerToken = req.headers.authorization?.split(" ")[1];
   const cookiesToken = req.cookies.access_token;
-   const token = bearerToken || cookiesToken;
-  //const token = cookiesToken || bearerToken;
+  const token = bearerToken || cookiesToken;
 
   if (!token) {
-    return res.status(403).json({msg: "You must be logged in"})
-  
+    return res.status(403).json({ msg: "You must be logged in" });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
-    if (err) return res.status(403).json({msg: "Token is not valid"})
+    if (err) return res.status(403).json({ msg: "Token is not valid" });
     // next(createError(403, "Token is not valid!"));
     req.user = decodedToken;
     next();
@@ -24,7 +21,7 @@ const verifyToken = (req, res, next) => {
 
 const verifyLogin = (req, res, next) => {
   const token = req.cookies.access_token;
-  console.log("🚀 ~ file: authenticate.js:27 ~ verifyLogin ~ token:", token)
+  console.log("🚀 ~ file: authenticate.js:27 ~ verifyLogin ~ token:", token);
 
   if (token) {
     // Verify the token and extract the user information
@@ -45,7 +42,11 @@ const verifyUser = (req, res, next) => {
   verifyToken(req, res, (err) => {
     if (err) return next(err);
 
-    if (req.user.id === req.params.id || req.user.role === UserRole.ADMIN || req.user.role === UserRole.SUPER_ADMIN) {
+    if (
+      req.user.id === req.params.id ||
+      req.user.role === UserRole.ADMIN ||
+      req.user.role === UserRole.SUPER_ADMIN
+    ) {
       next();
     } else {
       res.status(403).json({ message: "You are not authorized! User" });
@@ -60,27 +61,37 @@ const verifySuperAdmin = (req, res, next) => {
     if (req.user.role === UserRole.SUPER_ADMIN) {
       next();
     } else {
-      res.status(403).json({message: "You are not an administrator"});
+      res.status(403).json({ message: "You are not an administrator" });
     }
   });
 };
 
-
 const verifyRefreshToken = (req, res, next) => {
   // Assuming the refresh token is sent in a custom header or in cookies
-  const refreshToken = req.headers['x-refresh-token'] || req.cookies.refresh_token;
+  const refreshToken =
+    req.headers["x-refresh-token"] || req.cookies.refresh_token;
 
   if (!refreshToken) {
     return res.status(401).json({ message: "Refresh token is missing" });
   }
 
-  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decodedToken) => {
-    if (err) {
-      return res.status(403).json({ message: "Invalid refresh token" });
+  jwt.verify(
+    refreshToken,
+    process.env.REFRESH_TOKEN_SECRET,
+    (err, decodedToken) => {
+      if (err) {
+        return res.status(403).json({ message: "Invalid refresh token" });
+      }
+      req.user = decodedToken;
+      next();
     }
-    req.user = decodedToken;
-    next();
-  });
+  );
 };
 
-export { verifyToken, verifySuperAdmin, verifyUser, verifyLogin,verifyRefreshToken };
+export {
+  verifyLogin,
+  verifyRefreshToken,
+  verifySuperAdmin,
+  verifyToken,
+  verifyUser,
+};
