@@ -9,17 +9,16 @@ import{
     updatePrice
 } from './subscription.controller.js';
 import express from "express";
-import { 
-  checkOrganizationExists 
-} from '../organizations/organizations.middleware.js';
+
 import {
     
     verifyUser
 } from "../middleware/authenticate.js";
+import { getCurrentOrganization } from '../middleware/getCurrentOrganization.js';
 
 const subscriptionRouter = express.Router({ mergeParams: true });
 
-subscriptionRouter.use('/:orgId', checkOrganizationExists);
+subscriptionRouter.use('/:orgId', getCurrentOrganization);
 
 subscriptionRouter.post('/:orgId/subscription/create', createSubscription);
 subscriptionRouter.get('/:orgId/subscriptions', getSubscriptions);

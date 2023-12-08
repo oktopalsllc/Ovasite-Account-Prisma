@@ -9,11 +9,12 @@ import {
 } from "./report.controller.js";
 
 import { getCurrentEmployee } from "../middleware/getCurrentEmployee.js";
-import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
+
+import { getCurrentOrganization } from "../middleware/getCurrentOrganization.js";
 
 const reportRouter = express.Router({ mergeParams: true });
 
-reportRouter.use("/:orgId", checkOrganizationExists, getCurrentEmployee);
+reportRouter.use("/:orgId", getCurrentOrganization, getCurrentEmployee);
 
 reportRouter.post("/:orgId/report/create", createReport);
 reportRouter.get("/:orgId/report/:reportId", getReport);

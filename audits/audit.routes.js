@@ -1,5 +1,5 @@
 import express from "express";
-import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
+import { getCurrentOrganization } from "../middleware/getCurrentOrganization.js";
 import {
   deleteAuditLog,
   deleteOrgAuditLog,
@@ -9,7 +9,7 @@ import {
 } from "./audit.controller.js";
 const auditRouter = express.Router({ mergeParams: true });
 
-auditRouter.use("/:orgId", checkOrganizationExists);
+auditRouter.use("/:orgId", getCurrentOrganization);
 
 auditRouter.get("/:orgId/audits", getAuditLogs);
 auditRouter.get("/:orgId/orgaudits", getOrgAuditLogs);

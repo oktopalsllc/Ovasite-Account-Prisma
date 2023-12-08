@@ -14,9 +14,9 @@ import {
 } from "./employees.controllers.js";
 const employeeRouter = express.Router({ mergeParams: true });
 
-import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
+import { getCurrentOrganization } from "../middleware/getCurrentOrganization.js";
 
-employeeRouter.use("/:orgId", verifyToken, checkOrganizationExists);
+employeeRouter.use("/:orgId", verifyToken, getCurrentOrganization);
 
 // Routes for managing employees within an organization
 
@@ -34,9 +34,6 @@ employeeRouter.patch(
 employeeRouter.delete("/:orgId/employees/:employeeId", deleteEmployee);
 
 employeeRouter.get("/:orgId/employees/:employeeId/teams", getTeamsByEmployee);
-employeeRouter.patch(
-  "/:orgId/employees/change-role",
-  changeEmployeeRole
-);
+employeeRouter.patch("/:orgId/employees/change-role", changeEmployeeRole);
 
 export default employeeRouter;

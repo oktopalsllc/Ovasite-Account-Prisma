@@ -11,11 +11,11 @@ import {
 
 import express from "express";
 import { getCurrentEmployee } from "../middleware/getCurrentEmployee.js";
-import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
+import { getCurrentOrganization } from "../middleware/getCurrentOrganization.js";
 
 const submissionRouter = express.Router({ mergeParams: true });
 
-submissionRouter.use("/:orgId", checkOrganizationExists, getCurrentEmployee);
+submissionRouter.use("/:orgId", getCurrentOrganization, getCurrentEmployee);
 
 submissionRouter.post("/:orgId/submission/create", createSubmission);
 submissionRouter.get("/:orgId/submission/:submissionId", getSubmission);

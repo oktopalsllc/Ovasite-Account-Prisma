@@ -1,22 +1,23 @@
 import express from "express";
 import { getCurrentEmployee } from "../middleware/getCurrentEmployee.js";
-import { checkOrganizationExists } from "../organizations/organizations.middleware.js";
 import {
   createForm,
   deleteForm,
   getForm,
-  getFormWithSubmissions,
   getFormData,
+  getFormWithSubmissions,
   getForms,
   getFormsByEmployee,
   publishForm,
   updateForm,
-  updateFormData
+  updateFormData,
 } from "./form.controller.js";
+
+import { getCurrentOrganization } from "../middleware/getCurrentOrganization.js";
 
 const formRouter = express.Router({ mergeParams: true });
 
-formRouter.use("/:orgId", checkOrganizationExists, getCurrentEmployee);
+formRouter.use("/:orgId", getCurrentOrganization, getCurrentEmployee);
 
 formRouter.post("/:orgId/form/create", createForm);
 formRouter.get("/:orgId/form/:formId", getForm);

@@ -1,4 +1,5 @@
 import bodyParser from "body-parser";
+import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -28,6 +29,7 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(compression());
 app.use(cookieParser());
 app.use(
   cors({
@@ -76,7 +78,7 @@ app.use(`${basePath}/orgs`, auditRouter);
 app.use(`${basePath}/orgs`, subscriptionRouter);
 
 //Connect to the database before listening
-const PORT = process.env.PORT 
+const PORT = process.env.PORT;
 console.log("Port: " + PORT);
 
 app.listen(PORT, () => {
