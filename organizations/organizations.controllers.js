@@ -1,4 +1,5 @@
-import { EmployeeRole, PrismaClient } from "@prisma/client";
+import pkg from '@prisma/client';
+const { EmployeeRole, PrismaClient } = pkg;
 import asyncHandler from "express-async-handler";
 import ShortUniqueId from "short-unique-id";
 import { addNewCustomer } from "../helpers/stripe.js";

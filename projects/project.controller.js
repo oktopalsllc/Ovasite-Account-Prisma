@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 import { createObjectCsvWriter } from "csv-writer";
 import asyncHandler from "express-async-handler";
 import { createAuditLog } from "../helpers/auditHelper.js";
 import { InternalServerError, NotFoundError } from "../middleware/errors.js";
 import { uploadFile } from "../services/cloudinaryService.js";
+const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
 // Creates a new project
