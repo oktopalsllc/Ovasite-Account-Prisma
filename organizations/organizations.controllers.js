@@ -1,4 +1,4 @@
-import pkg from "@prisma/client";
+import { EmployeeRole, PrismaClient } from "@prisma/client";
 import asyncHandler from "express-async-handler";
 import ShortUniqueId from "short-unique-id";
 import { addNewCustomer } from "../helpers/stripe.js";
@@ -6,8 +6,7 @@ import {
   getPublicIdFromUrl,
   updateFile,
 } from "../services/cloudinaryService.js";
-const { PrismaClient, EmployeeRole } = pkg;
-
+import client from "../services/redisClient.js";
 const prisma = new PrismaClient();
 
 const { randomUUID } = new ShortUniqueId({ length: 10 });
@@ -72,7 +71,16 @@ const createOrganization = asyncHandler(async (req, res) => {
 // Get all current user organizations
 const getUserOrganizations = asyncHandler(async (req, res) => {
   const { email, id } = req.user;
+  const cacheKey = `user_organizations:${id}`;
   try {
+    // Check cache first
+    const cachedData = await client.get(cacheKey);
+    if (cachedData) {
+      return res
+        .status(200)
+        .json({ isCached: true, organizations: JSON.parse(cachedData) });
+    }
+
     const organizations = await prisma.organization.findMany({
       where: {
         OR: [{ userId: id }, { employees: { some: { email } } }],
@@ -92,7 +100,13 @@ const getUserOrganizations = asyncHandler(async (req, res) => {
         .status(200)
         .json({ message: "You're not a part of any organization" });
     }
-    res.status(200).json(organizations);
+
+    // Cache the result
+    await client.set(cacheKey, JSON.stringify(organizations), {
+      EX: 3600, // Set an expiry for the cache, e.g., 1 hour
+    });
+
+    res.status(200).json({ isCached: false, organizations });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -101,8 +115,16 @@ const getUserOrganizations = asyncHandler(async (req, res) => {
 // Get an organization by ID
 const getOrganizationById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-
+  const cacheKey = `organization:${id}`;
   try {
+    // Check cache first
+    const cachedData = await client.get(cacheKey);
+    if (cachedData) {
+      return res
+        .status(200)
+        .json({ isCached: true, organization: JSON.parse(cachedData) });
+    }
+
     const organization = await prisma.organization.findUnique({
       where: { id },
       include: {
@@ -118,7 +140,12 @@ const getOrganizationById = asyncHandler(async (req, res) => {
       res.status(404).json(`organization ${id} not found`);
     }
 
-    res.status(200).json(organization);
+    // Cache the result
+    await client.set(cacheKey, JSON.stringify(organization), {
+      EX: 3600, // Set an expiry for the cache, e.g., 1 hour
+    });
+
+    res.status(200).json({ isCached: false, organization });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -156,13 +183,11 @@ const updateOrganization = asyncHandler(async (req, res) => {
       },
     });
 
-    res
-      .status(202)
-      .json({
-        message: "Organization updated",
-        status: true,
-        updatedOrganization,
-      });
+    res.status(202).json({
+      message: "Organization updated",
+      status: true,
+      updatedOrganization,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
@@ -181,18 +206,21 @@ const deleteOrganization = asyncHandler(async (req, res) => {
     });
 
     if (!existingOrganization) {
-      return res
-        .status(404)
-        .json({ error: `organization with ID ${id} not found.` });
+      return res.status(404).json({
+        message: `organization with ID ${id} not found.`,
+        status: false,
+      });
     }
 
     await prisma.organization.delete({
       where: { id },
     });
 
-    res.status(204).json(`organization ${id} deleted`);
+    res
+      .status(204)
+      .json({ message: `organization ${id} deleted`, status: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message, status: false });
   }
 });
 

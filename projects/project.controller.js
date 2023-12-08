@@ -1,9 +1,9 @@
-import pkg from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { createObjectCsvWriter } from "csv-writer";
 import asyncHandler from "express-async-handler";
 import { createAuditLog } from "../helpers/auditHelper.js";
 import { InternalServerError, NotFoundError } from "../middleware/errors.js";
-const { PrismaClient } = pkg;
+import { uploadFile } from "../services/cloudinaryService.js";
 const prisma = new PrismaClient();
 
 // Creates a new project
@@ -13,6 +13,22 @@ const createProject = asyncHandler(async (req, res, next) => {
     const { name, description, expectedDuration, status, startDate, endDate } =
       req.body;
 
+    let imageUrl;
+
+    if (req.file) {
+      try {
+        imageUrl = await uploadFile(req.file);
+        console.log(
+          "🚀 ~ file: project.controller.js:30 ~ createProject ~ imageUrl:",
+          imageUrl
+        );
+      } catch (error) {
+        console.error("Error in file upload:", error.message);
+        // Optionally, handle the error, e.g., by returning a response
+        return res.status(500).json({ error: "Error uploading file." });
+      }
+    }
+
     const newProject = await prisma.project.create({
       data: {
         name,
@@ -21,6 +37,7 @@ const createProject = asyncHandler(async (req, res, next) => {
         status,
         startDate,
         endDate,
+        image: imageUrl || null,
         organization: { connect: { id: orgId } },
         creator: { connect: { id: req.employeeId } },
       },
@@ -109,8 +126,15 @@ const addEmployee = asyncHandler(async (req, res, next) => {
 
 // Gets a project created by an organization by its id
 const getOrgProject = asyncHandler(async (req, res, next) => {
+  const { orgId, projectId } = req.params;
+  const cacheKey = `org_project:${orgId}:${projectId}`;
   try {
-    const { orgId, projectId } = req.params;
+    const cachedProject = await client.get(cacheKey);
+    if (cachedProject) {
+      return res
+        .status(200)
+        .json({ isCached: true, project: JSON.parse(cachedProject) });
+    }
     const project = await prisma.project.findUnique({
       include: {
         forms: true,
@@ -124,7 +148,9 @@ const getOrgProject = asyncHandler(async (req, res, next) => {
       },
     });
     if (!project) throw new NotFoundError("Project not found");
-    res.status(201).json(project);
+
+    await client.set(cacheKey, JSON.stringify(project), { EX: 3600 });
+    res.status(201).json({ isCached: false, project });
   } catch (err) {
     next(err);
   }
@@ -132,8 +158,15 @@ const getOrgProject = asyncHandler(async (req, res, next) => {
 
 // Gets list of projects created by an organization
 const getOrgProjects = asyncHandler(async (req, res) => {
+  const { orgId } = req.params;
+  const cacheKey = `org_project:${orgId}`;
   try {
-    const { orgId } = req.params;
+    const cachedProject = await client.get(cacheKey);
+    if (cachedProject) {
+      return res
+        .status(200)
+        .json({ isCached: true, project: JSON.parse(cachedProject) });
+    }
     const projects = await prisma.project.findMany({
       include: {
         submissions: true,
@@ -149,7 +182,8 @@ const getOrgProjects = asyncHandler(async (req, res) => {
         createdAt: "desc",
       },
     });
-    res.status(201).json(projects);
+    await client.set(cacheKey, JSON.stringify(projects), { EX: 3600 });
+    res.status(201).json({ isCached: false, projects });
   } catch (err) {
     next(err);
   }
@@ -157,8 +191,15 @@ const getOrgProjects = asyncHandler(async (req, res) => {
 
 // Gets list of projects associated with an employee
 const getEmployeeProjects = asyncHandler(async (req, res, next) => {
+  const { empId } = req.params;
+  const cacheKey = `employee_projects:${empId}`;
   try {
-    const { empId } = req.params;
+    const cachedProjects = await client.get(cacheKey);
+    if (cachedProjects) {
+      return res
+        .status(200)
+        .json({ isCached: true, projects: JSON.parse(cachedProjects) });
+    }
     const projects = await prisma.employeeProjectAssociation.findMany({
       where: {
         employeeId: empId,
@@ -167,7 +208,8 @@ const getEmployeeProjects = asyncHandler(async (req, res, next) => {
         project: true,
       },
     });
-    res.status(201).json(projects);
+    await client.set(cacheKey, JSON.stringify(projects), { EX: 3600 });
+    res.status(201).json({ isCached: false, projects });
   } catch (err) {
     next(err);
   }
@@ -175,8 +217,15 @@ const getEmployeeProjects = asyncHandler(async (req, res, next) => {
 
 // Gets a list of employees associated with an project
 const getProjectEmployees = asyncHandler(async (req, res, next) => {
+  const { projectId } = req.params;
+  const cacheKey = `project_employees:${projectId}`;
   try {
-    const { projectId } = req.params;
+    const cachedEmployees = await client.get(cacheKey);
+    if (cachedEmployees) {
+      return res
+        .status(200)
+        .json({ isCached: true, projects: JSON.parse(cachedEmployees) });
+    }
     const employees = await prisma.employeeProjectAssociation.findMany({
       where: {
         projectId: projectId,
@@ -185,7 +234,9 @@ const getProjectEmployees = asyncHandler(async (req, res, next) => {
         employee: true,
       },
     });
-    res.status(201).json(employees);
+
+    await client.set(cacheKey, JSON.stringify(employees), { EX: 3600 });
+    res.status(201).json({ isCached: false, employees });
   } catch (err) {
     next(err);
   }
@@ -193,8 +244,15 @@ const getProjectEmployees = asyncHandler(async (req, res, next) => {
 
 // Get non associated employees
 const getAllEmployees = asyncHandler(async (req, res) => {
+  const { orgId, projectId } = req.params;
+  const cacheKey = `all_employees:${orgId}:${projectId}`;
   try {
-    const { orgId, projectId } = req.params;
+    const cachedEmployees = await client.get(cacheKey);
+    if (cachedEmployees) {
+      return res
+        .status(200)
+        .json({ isCached: true, projects: JSON.parse(cachedEmployees) });
+    }
     const employees = await prisma.employee.findMany({
       where: {
         organizationId: orgId,
@@ -210,8 +268,8 @@ const getAllEmployees = asyncHandler(async (req, res) => {
         fullName: true,
       },
     });
-
-    res.status(200).json(employees);
+    await client.set(cacheKey, JSON.stringify(employees), { EX: 3600 });
+    res.status(200).json({ isCached: false, employees });
   } catch (err) {
     next(err);
   }
@@ -360,7 +418,17 @@ const updateProject = asyncHandler(async (req, res, next) => {
       where: {
         id: projectId,
       },
+      select: {
+        image: true,
+      },
     });
+
+    let imageUrl = oldValues.image;
+
+    if (req.file) {
+      const { publicId } = getPublicIdFromUrl(logoUrl);
+      imageUrl = await uploadFile(req.file, publicId);
+    }
 
     const updatedProject = await prisma.project.update({
       where: {
@@ -482,7 +550,7 @@ const exportProject = asyncHandler(async (req, res, next) => {
     }
 
     const csvWriter = new createObjectCsvWriter({
-      path: `${project.name}`,
+      path: `${project.name}.csv`,
       header: [
         // Define the CSV header
         { id: "project_id", title: "Project Id" },
@@ -530,9 +598,9 @@ const exportProject = asyncHandler(async (req, res, next) => {
     ];
 
     csvWriter
-      .writeRecords(records) // returns a promise
+      .writeRecords(records)
       .then(() => {
-        res.download("project.csv"); // Send the CSV file as a response
+        res.download(`${project.name}.csv`); // Send the CSV file as a response
       })
       .catch((error) => {
         throw new InternalServerError(error);
