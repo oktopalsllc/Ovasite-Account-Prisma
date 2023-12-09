@@ -3,10 +3,9 @@ import { createObjectCsvWriter } from "csv-writer";
 import asyncHandler from "express-async-handler";
 import { createAuditLog } from "../helpers/auditHelper.js";
 import { InternalServerError, NotFoundError } from "../middleware/errors.js";
-import { uploadFile } from "../services/cloudinaryService.js";
 import client from "../services/redisClient.js";
 
-const { PrismaClient } = pkg;
+const { PrismaClient, ProjectRole } = pkg;
 const prisma = new PrismaClient();
 
 // Creates a new project
@@ -16,22 +15,6 @@ const createProject = asyncHandler(async (req, res, next) => {
     const { name, description, expectedDuration, status, startDate, endDate } =
       req.body;
 
-    let imageUrl;
-
-    if (req.file) {
-      try {
-        imageUrl = await uploadFile(req.file);
-        console.log(
-          "🚀 ~ file: project.controller.js:30 ~ createProject ~ imageUrl:",
-          imageUrl
-        );
-      } catch (error) {
-        console.error("Error in file upload:", error.message);
-        // Optionally, handle the error, e.g., by returning a response
-        return res.status(500).json({ error: "Error uploading file." });
-      }
-    }
-
     const newProject = await prisma.project.create({
       data: {
         name,
@@ -40,16 +23,15 @@ const createProject = asyncHandler(async (req, res, next) => {
         status,
         startDate,
         endDate,
-        image: imageUrl || null,
         organization: { connect: { id: orgId } },
         creator: { connect: { id: req.employeeId } },
       },
     });
-    const projectAssociaton = await prisma.employeeProjectAssociation.create({
+    await prisma.employeeProjectAssociation.create({
       data: {
         employee: { connect: { id: req.employeeId } },
         project: { connect: { id: newProject.id } },
-        role: "MANAGER",
+        role: ProjectRole.MANAGER,
       },
     });
     await createAuditLog(
@@ -62,16 +44,7 @@ const createProject = asyncHandler(async (req, res, next) => {
       JSON.stringify(newProject),
       newProject.id.toString()
     );
-    await createAuditLog(
-      req.employeeId,
-      req.ip.address || null,
-      orgId,
-      "create",
-      "EmployeeProjectAssociation",
-      "",
-      JSON.stringify(projectAssociaton),
-      projectAssociaton.id.toString()
-    );
+
     res.status(201).json({
       message: "Project created successfully",
       status: true,
@@ -185,7 +158,7 @@ const getOrgProjects = asyncHandler(async (req, res, next) => {
         createdAt: "desc",
       },
     });
-    await client.set(cacheKey, JSON.stringify(projects), { EX: 3600 });
+    await client.set(cacheKey, JSON.stringify(projects), { EX: 120 });
     res.status(201).json({ isCached: false, projects });
   } catch (err) {
     next(err);
