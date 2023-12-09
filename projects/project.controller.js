@@ -125,7 +125,7 @@ const getOrgProject = asyncHandler(async (req, res, next) => {
     });
     if (!project) throw new NotFoundError("Project not found");
 
-    await client.set(cacheKey, JSON.stringify(project), { EX: 3600 });
+    await client.set(cacheKey, JSON.stringify(project), { EX: 120 });
     res.status(201).json({ isCached: false, project });
   } catch (err) {
     next(err);
