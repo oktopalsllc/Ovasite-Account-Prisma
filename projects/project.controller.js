@@ -4,6 +4,8 @@ import asyncHandler from "express-async-handler";
 import { createAuditLog } from "../helpers/auditHelper.js";
 import { InternalServerError, NotFoundError } from "../middleware/errors.js";
 import { uploadFile } from "../services/cloudinaryService.js";
+import client from "../services/redisClient.js";
+
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
@@ -158,7 +160,7 @@ const getOrgProject = asyncHandler(async (req, res, next) => {
 });
 
 // Gets list of projects created by an organization
-const getOrgProjects = asyncHandler(async (req, res) => {
+const getOrgProjects = asyncHandler(async (req, res, next) => {
   const { orgId } = req.params;
   const cacheKey = `org_project:${orgId}`;
   try {
